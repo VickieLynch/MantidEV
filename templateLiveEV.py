@@ -11,28 +11,28 @@ config['Q.convention'] = 'Crystallography'
 
 class MantidEV():
     def __init__(self):
-        self.eventFileName = "TOPAZ_15629"
-        self.phi = -83.4225
-        self.chi = 135.0
-        self.omega = 53.172
-        self.calFileName = "/SNS/TOPAZ/shared/PeakIntegration/calibration/TOPAZ_2016A.DetCal"
-        self.minDSpacing = 0.5
-        self.minWavelength = 0.5
-        self.maxWavelength = 3.5
-        self.sampleRadius = 0.0656
-        self.linSca = 0.67
-        self.linAbs = 0.733
-        self.powerL = 4.0
-        self.minQ = -20
-        self.maxQ = 20
-        self.numPeaksToFind = 200
-        self.abcMin = 6
-        self.abcMax = 11
-        self.tolerance = 0.2
-        self.peakRadius = 0.16
-        self.minIntensity = 100
-        self.nGrid = 410
-        self.predictPeaks = 0
+        self.eventFileName = "{eventFileName}"
+        self.phi = {phi}
+        self.chi = {chi}
+        self.omega = {omega}
+        self.calFileName = "{calFileName}"
+        self.minDSpacing = {minDSpacing}
+        self.minWavelength = {minWavelength}
+        self.maxWavelength = {maxWavelength}
+        self.sampleRadius = {sampleRadius}
+        self.linSca = {linSca}
+        self.linAbs = {linAbs}
+        self.powerL = {powerL}
+        self.minQ = {minQ}
+        self.maxQ = {maxQ}
+        self.numPeaksToFind = {numPeaksToFind}
+        self.abcMin = {abcMin}
+        self.abcMax = {abcMax}
+        self.tolerance = {tolerance}
+        self.peakRadius = {peakRadius}
+        self.minIntensity = {minIntensity}
+        self.nGrid = {nGrid}
+        self.predictPeaks = {predictPeaks}
         self.LorentzCorr = True
 
     def select_wksp(self):
@@ -139,7 +139,7 @@ class MantidEV():
         plt.show()
 
     def plot_peaks(self):
-            plt.rcParams.update({'font.size': 6})
+            plt.rcParams.update({{'font.size': 6}})
             self.text = []
             distance_threshold = 0.9 * 6.28 / float(self.abcMax)
             #End Input from GUI
@@ -233,7 +233,7 @@ class MantidEV():
             self.sumIsigI2 /=  self.npeaks/100.0
     
     def plot_Qpeaks(self):
-            plt.rcParams.update({'font.size': 10})
+            plt.rcParams.update({{'font.size': 10}})
             CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self.ws,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
             try:
                 IndexPeaks( PeaksWorkspace = self.ws, Tolerance = 1.0, RoundHKLs = False )
@@ -255,7 +255,7 @@ class MantidEV():
                         +'\nDetector Number:'+bank
                         +'\nh,k,l:'+'%.3f %.3f %.3f'%(peak.getH(),peak.getK(),peak.getL())
                         +'\nQ$_X$,Q$_Y$,Q$_Z$:'+'%.3f %.3f %.3f'%(self.x[i],self.y[i],self.z[i])
-                        +'\nQ($\AA^{-1}, 2\pi/d$):'+'%.3f'%(2*np.pi/peak.getDSpacing())
+                        +'\nQ($\AA^{{-1}}, 2\pi/d$):'+'%.3f'%(2*np.pi/peak.getDSpacing())
                         +'\nd-Spacing($\AA$):'+'%.3f'%(peak.getDSpacing())
                         +'\nWavelength($\AA$):'+'%.3f'%(peak.getWavelength())
                         +'\n2$\\theta$($^\circ$):'+'%.3f'%(peak.getScattering())
@@ -283,8 +283,8 @@ class MantidEV():
                 "%\nPeaks with I/sigI > 5 = "+'%.1f'%(self.sumIsigI5) +
                 "%\nPeaks with I/sigI > 2 = "+'%.1f'%(self.sumIsigI2) +
                 "%\n# peaks indexed = "+str(self.numInd) + " out of " + str(self.npeaks) +
-                "\nLattice = " + " " + "{:.2f}".format(lattice.a()) + " " + "{:.2f}".format(lattice.b()) + " " + "{:.2f}".format(lattice.c()) + " " +
-                "{:.2f}".format(lattice.alpha()) + " " + "{:.2f}".format(lattice.beta()) + " " + "{:.2f}".format(lattice.gamma()) +
+                "\nLattice = " + " " + "{{:.2f}}".format(lattice.a()) + " " + "{{:.2f}}".format(lattice.b()) + " " + "{{:.2f}}".format(lattice.c()) + " " +
+                "{{:.2f}}".format(lattice.alpha()) + " " + "{{:.2f}}".format(lattice.beta()) + " " + "{{:.2f}}".format(lattice.gamma()) +
                 "\nClick on peak to see peak info." +
                 "\nHold mouse button to rotate." ,
                 fontsize = 20, transform = self.axP.transAxes)
