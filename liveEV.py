@@ -11,44 +11,61 @@ config['Q.convention'] = 'Crystallography'
 
 class MantidEV():
     def __init__(self):
-        self._eventFileName="TOPAZ_15629"
-        self._calFileName="/SNS/TOPAZ/shared/PeakIntegration/calibration/TOPAZ_2016A.DetCal"
-        self._LorentzCorr=True
-        self._minQ=-20
-        self._maxQ=20
-        self._num_peaks_to_find = 200
-        self.min_d = 6
-        self.max_d = 11
-        self.tolerance = 0.2
-        self.peak_radius = 0.16
-        self.minIntensity = 100
-        self.nGrid=410
+        self.eventFileName="TOPAZ_15629"
+        self.phi = -83.4225
+        self.chi = 135.0
+        self.omega = 53.172
+        self.calFileName="/SNS/TOPAZ/shared/PeakIntegration/calibration/TOPAZ_2016A.DetCal"
         self.minDSpacing = 0.5
         self.minWavelength = 0.5
         self.maxWavelength = 3.5
+        self.sampleRadius = 0.0656
+        self.linSca = 0.670
+        self.linAbs = 0.733
+        self.powerL = 4.0
+        self.LorentzCorr=False
+        self.minQ=-20
+        self.maxQ=20
+        self.numPeaksToFind = 200
+        self.abcMin = 6
+        self.abcMax = 11
+        self.tolerance = 0.2
+        self.peakRadius = 0.16
+        self.minIntensity = 100
+        self.nGrid=410
         self.predictPeaks = False
 
     def select_wksp(self):
         try:
             props=input.run().getProperties()
             self._wksp = input
-            SetGoniometer(Workspace=input,Axis0="0,0,1,0,1",Axis1="135.0,0,0,1,1",Axis2="0,0,1,0,1")
         except:
-            self._calFileName="TOPAZ_2016A.DetCal"
-            self._wksp = Load(Filename=self._eventFileName,OutputWorkspace="events")
-        self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="dSpacing",EMode="Elastic")
+            self.calFileName="TOPAZ_2016A.DetCal"
+            self._wksp = Load(Filename=self.eventFileName,OutputWorkspace="events")
+            self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="dSpacing",EMode="Elastic")
+        if phi not 0.0 or omega not 0.0:
+            SetGoniometer(Workspace=self._wksp)
+            AddSampleLog(Workspace=self._wksp, LogName='phi', LogText=str(self.phi), LogType='Number')
+            AddSampleLog(Workspace=self._wksp, LogName='chi', LogText=str(self.chi), LogType='Number')
+            AddSampleLog(Workspace=self._wksp, LogName='omega', LogText=str(self.omega), LogType='Number')
+            SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
         self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minDSpacing,OutputWorkspace="eventWksp")
         self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="Wavelength",EMode="Elastic")
         self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minWavelength, XMax = self.maxWavelength,OutputWorkspace="eventWksp")
         self.events = self._wksp.getNumberEvents()
-        if self._calFileName:
-            LoadIsawDetCal(InputWorkspace=self._wksp,Filename=str(self._calFileName))  # load cal file
+        if self.calFileName:
+            LoadIsawDetCal(InputWorkspace=self._wksp,Filename=str(self.calFileName))  # load cal file
+        if self.sampleRadius > 0:
+            self._wksp = AnvredCorrection(InputWorkspace = self._wksp,LinearScatteringCoef = self.linSca,LinearAbsorptionCoef = self.linAbs,
+                Radius = self.sampleRadius,PowerLambda = self.powerL,OutputWorkspace="events")
+            if self.powerL > 1.0:
+                self.LorentzCorr = False
         if self._wksp:
             output = ConvertToMD(InputWorkspace = self._wksp, QDimensions = 'Q3D', dEAnalysisMode = 'Elastic',
-                 LorentzCorrection = self._LorentzCorr, OutputWorkspace='output',
+                 LorentzCorrection = self.LorentzCorr, OutputWorkspace='output',
                  Q3DFrames = 'Q_sample', QConversionScales = 'Q in A^-1',
-                 MinValues = str(self._minQ)+','+str(self._minQ)+','+str(self._minQ),
-                 MaxValues = str(self._maxQ)+','+str(self._maxQ)+','+str(self._maxQ))
+                 MinValues = str(self.minQ)+','+str(self.minQ)+','+str(self.minQ),
+                 MaxValues = str(self.maxQ)+','+str(self.maxQ)+','+str(self.maxQ))
             self._md = output
 
     def orthogonal_proj(self, zfront, zback):
@@ -72,10 +89,10 @@ class MantidEV():
             self.screen_x = 40
             self.screen_y = 40
         Box = BinMD(InputWorkspace = self._md,
-                 AlignedDim0 = 'Q_sample_x,'+str(self._minQ)+','+str(self._maxQ)+','+str(self.nGrid),
-                 AlignedDim1 = 'Q_sample_y,'+str(self._minQ)+','+str(self._maxQ)+','+str(self.nGrid),
-                 AlignedDim2 = 'Q_sample_z,'+str(self._minQ)+','+str(self._maxQ)+','+str(self.nGrid))
-        qp = np.linspace(self._minQ,self._maxQ,self.nGrid)
+                 AlignedDim0 = 'Q_sample_x,'+str(self.minQ)+','+str(self.maxQ)+','+str(self.nGrid),
+                 AlignedDim1 = 'Q_sample_y,'+str(self.minQ)+','+str(self.maxQ)+','+str(self.nGrid),
+                 AlignedDim2 = 'Q_sample_z,'+str(self.minQ)+','+str(self.maxQ)+','+str(self.nGrid))
+        qp = np.linspace(self.minQ,self.maxQ,self.nGrid)
         g = self.meshgrid2(qp, qp, qp)
         positions = np.vstack(map(np.ravel, g))
         self.x,self.y,self.z = np.split(positions, 3)
@@ -123,10 +140,10 @@ class MantidEV():
     def plot_peaks(self):
             plt.rcParams.update({'font.size': 6})
             self.text = []
-            distance_threshold = 0.9 * 6.28 / float(self.max_d)
+            distance_threshold = 0.9 * 6.28 / float(self.abcMax)
             #End Input from GUI
-            bkg_inner_radius = self.peak_radius
-            bkg_outer_radius = self.peak_radius  * 1.25992105 # A factor of 2 ^ (1/3)
+            bkg_inner_radius = self.peakRadius
+            bkg_outer_radius = self.peakRadius  * 1.25992105 # A factor of 2 ^ (1/3)
             #Create peaks for all 3D grid point about minIntensity
             self.ws = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace="events")
             CopySample(InputWorkspace = self._md,OutputWorkspace = self.ws,CopyName = True,CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
@@ -143,12 +160,12 @@ class MantidEV():
 #                except:
 #                    print "No peaks created", i, self.x[i], self.y[i], self.z[i]
     
-            self.peaks_ws = FindPeaksMD( self._md, MaxPeaks = self._num_peaks_to_find, OutputWorkspace="peaks",
+            self.peaks_ws = FindPeaksMD( self._md, MaxPeaks = self.numPeaksToFind, OutputWorkspace="peaks",
                                     PeakDistanceThreshold = distance_threshold )
             self.instrument = self.peaks_ws.getInstrument()
          
             try:
-                FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = self.min_d, MaxD = self.max_d, Tolerance = self.tolerance )
+                FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = self.abcMin, MaxD = self.abcMax, Tolerance = self.tolerance )
                 SaveIsawUB(self.peaks_ws,"Peaks"+str(self.events)+".mat")
                 self.numInd,errInd = IndexPeaks( PeaksWorkspace = self.peaks_ws, Tolerance = self.tolerance, RoundHKLs = False )
                 if self.predictPeaks:
@@ -157,7 +174,7 @@ class MantidEV():
                 self.numInd = 0
                 print "UB matrix not found"
 
-            self.peaks_ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = self.peak_radius,
+            self.peaks_ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = self.peakRadius,
                               CoordinatesToUse = "Q (sample frame)",
                                 BackgroundOuterRadius = bkg_outer_radius,
                               BackgroundInnerRadius = bkg_inner_radius,
@@ -197,8 +214,8 @@ class MantidEV():
                 self.s = np.append(self.s,160)
                 sl2d = BinMD(InputWorkspace=self._md, AxisAligned=False, BasisVector0='Q_sample_x,Angstrom^-1,1,0,0',
                     BasisVector1='Q_sample_y,Angstrom^-1,0,1,0', BasisVector2='Q_sample_z,Angstrom^-1,0,0,1',
-                    OutputExtents=str(qsample.X()-self.peak_radius)+','+str(qsample.X()+self.peak_radius)+','+str(qsample.Y()-0.05)
-                    +','+str(qsample.Y()+0.05)+','+str(qsample.Z()-self.peak_radius)+','+str(qsample.Z()+self.peak_radius),
+                    OutputExtents=str(qsample.X()-self.peakRadius)+','+str(qsample.X()+self.peakRadius)+','+str(qsample.Y()-0.05)
+                    +','+str(qsample.Y()+0.05)+','+str(qsample.Z()-self.peakRadius)+','+str(qsample.Z()+self.peakRadius),
                     OutputBins='100,1,100', Parallel=True)
                 #10 subplots per page
                 pcm=self.Plot2DMD(axs[j],sl2d, hkl, NumEvNorm=False)
