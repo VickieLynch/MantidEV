@@ -17,6 +17,16 @@ class MantidEV():
         self._minQ=-20
         self._maxQ=20
         self._num_peaks_to_find = 200
+        self.min_d = 6
+        self.max_d = 11
+        self.tolerance = 0.2
+        self.peak_radius = 0.16
+        self.minIntensity = 100
+        self.nGrid=410
+        self.minDSpacing = 0.5
+        self.minWavelength = 0.5
+        self.maxWavelength = 3.5
+        self.predictPeaks = False
 
     def select_wksp(self):
         try:
@@ -26,10 +36,10 @@ class MantidEV():
         except:
             self._calFileName="TOPAZ_2016A.DetCal"
             self._wksp = Load(Filename=self._eventFileName,OutputWorkspace="events")
-            self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="dSpacing",EMode="Elastic")
-            self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = 0.5,OutputWorkspace="eventWksp")
-            self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="Wavelength",EMode="Elastic")
-            self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = 0.5, XMax = 3.5,OutputWorkspace="eventWksp")
+        self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="dSpacing",EMode="Elastic")
+        self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minDSpacing,OutputWorkspace="eventWksp")
+        self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="Wavelength",EMode="Elastic")
+        self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minWavelength, XMax = self.maxWavelength,OutputWorkspace="eventWksp")
         self.events = self._wksp.getNumberEvents()
         if self._calFileName:
             LoadIsawDetCal(InputWorkspace=self._wksp,Filename=str(self._calFileName))  # load cal file
@@ -61,12 +71,11 @@ class MantidEV():
         except:
             self.screen_x = 40
             self.screen_y = 40
-        Ngrid=410
         Box = BinMD(InputWorkspace = self._md,
-                 AlignedDim0 = 'Q_sample_x,'+str(self._minQ)+','+str(self._maxQ)+','+str(Ngrid),
-                 AlignedDim1 = 'Q_sample_y,'+str(self._minQ)+','+str(self._maxQ)+','+str(Ngrid),
-                 AlignedDim2 = 'Q_sample_z,'+str(self._minQ)+','+str(self._maxQ)+','+str(Ngrid))
-        qp = np.linspace(self._minQ,self._maxQ,Ngrid)
+                 AlignedDim0 = 'Q_sample_x,'+str(self._minQ)+','+str(self._maxQ)+','+str(self.nGrid),
+                 AlignedDim1 = 'Q_sample_y,'+str(self._minQ)+','+str(self._maxQ)+','+str(self.nGrid),
+                 AlignedDim2 = 'Q_sample_z,'+str(self._minQ)+','+str(self._maxQ)+','+str(self.nGrid))
+        qp = np.linspace(self._minQ,self._maxQ,self.nGrid)
         g = self.meshgrid2(qp, qp, qp)
         positions = np.vstack(map(np.ravel, g))
         self.x,self.y,self.z = np.split(positions, 3)
@@ -76,8 +85,7 @@ class MantidEV():
         self.c = Box.getSignalArray()
         self.c = self.c.flatten()
         data = zip(self.c,self.x,self.y,self.z)
-        minIntensity = 100
-        data = [i for i in data if i[0] >= minIntensity]
+        data = [i for i in data if i[0] >= self.minIntensity]
         self.c,self.x,self.y,self.z = zip(*data)
         self.x = np.array(self.x)
         self.y = np.array(self.y)
@@ -85,7 +93,6 @@ class MantidEV():
         self.c = np.array(self.c)
         self.c[self.c<=1] = 1.
         self.s = np.ones([len(self.c)]) * 20
-        plt.rcParams.update({'font.size': 6})
         fig = plt.figure("ReciprocalSpace"+str(self.events),figsize = (self.screen_x, self.screen_y))
         ax = fig.gca(projection = '3d')
         vmin = min(self.c)
@@ -95,7 +102,6 @@ class MantidEV():
         se = ax.scatter(self.x, self.y, self.z, c = self.c, vmin = vmin, vmax = vmax, cmap = cm, norm = logNorm, s = self.s, alpha = 1.0, picker = True)
         ax.text2D(0.05, 0.90, "# Events = "+str(self.events) +
                 "\nHold mouse button to rotate." ,
-#                "\nClose window to calculate lattice parameters and I/sigI.",
             fontsize = 20, transform = ax.transAxes)
         ax.set_xlabel('Q$_X$')
         ax.set_ylabel('Q$_Y$')
@@ -115,19 +121,14 @@ class MantidEV():
         plt.show()
 
     def plot_peaks(self):
+            plt.rcParams.update({'font.size': 6})
             self.text = []
-            figNo = 1
-            min_d = 6
-            max_d = 11
-            tolerance = 0.2
-            peak_radius = 0.16
-            minIntensity = 100
-            distance_threshold = 0.9 * 6.28 / float(max_d)
+            distance_threshold = 0.9 * 6.28 / float(self.max_d)
             #End Input from GUI
-            bkg_inner_radius = peak_radius
-            bkg_outer_radius = peak_radius  * 1.25992105 # A factor of 2 ^ (1/3)
+            bkg_inner_radius = self.peak_radius
+            bkg_outer_radius = self.peak_radius  * 1.25992105 # A factor of 2 ^ (1/3)
             #Create peaks for all 3D grid point about minIntensity
-            self.ws = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWOrkspace="events")
+            self.ws = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace="events")
             R=self._wksp.run().getGoniometer().getR()
         
             for i in range(len(self.x)):
@@ -146,22 +147,21 @@ class MantidEV():
             self.instrument = self.peaks_ws.getInstrument()
          
             try:
-                FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = min_d, MaxD = max_d, Tolerance = tolerance )
-                SaveIsawUB(self.peaks_ws,"Peaks"+str(figNo)+".mat")
-                self.numInd,errInd = IndexPeaks( PeaksWorkspace = self.peaks_ws, Tolerance = tolerance, RoundHKLs = False )
-                #self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=0.5, WavelengthMax=3.5, MinDSpacing=0.5, OutputWorkspace="peaks")
+                FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = self.min_d, MaxD = self.max_d, Tolerance = self.tolerance )
+                SaveIsawUB(self.peaks_ws,"Peaks"+str(self.events)+".mat")
+                self.numInd,errInd = IndexPeaks( PeaksWorkspace = self.peaks_ws, Tolerance = self.tolerance, RoundHKLs = False )
+                if self.predictPeaks:
+                    self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength, WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, OutputWorkspace="peaks")
             except:
                 self.numInd = 0
                 print "UB matrix not found"
 
-            self.peaks_ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = peak_radius,
+            self.peaks_ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = self.peak_radius,
                               CoordinatesToUse = "Q (sample frame)",
                                 BackgroundOuterRadius = bkg_outer_radius,
                               BackgroundInnerRadius = bkg_inner_radius,
                                 PeaksWorkspace = self.peaks_ws, OutputWorkspace="peaks")
-            SaveIsawPeaks(self.peaks_ws,"Peaks"+str(figNo)+".integrate")
-            SaveIsawPeaks(self.ws,"PeaksQ_"+str(figNo)+".integrate")
-    
+            SaveIsawPeaks(self.peaks_ws,"Peaks"+str(self.events)+".integrate")
     
             self.npeaks = self.peaks_ws.getNumberPeaks()
             self.sumIsigI = 0.0
@@ -189,15 +189,15 @@ class MantidEV():
                     IsigI = 0.0
                 detID = int(peak.getDetectorID())
                 bank = self.instrument.getDetector(detID).getName()
-                self.c = np.append(self.c,max(minIntensity,intensity))
+                self.c = np.append(self.c,max(self.minIntensity,intensity))
                 self.x = np.append(self.x,qsample.X())
                 self.y = np.append(self.y,qsample.Y())
                 self.z = np.append(self.z,qsample.Z())
                 self.s = np.append(self.s,160)
                 sl2d = BinMD(InputWorkspace=self._md, AxisAligned=False, BasisVector0='Q_sample_x,Angstrom^-1,1,0,0',
                     BasisVector1='Q_sample_y,Angstrom^-1,0,1,0', BasisVector2='Q_sample_z,Angstrom^-1,0,0,1',
-                    OutputExtents=str(qsample.X()-peak_radius)+','+str(qsample.X()+peak_radius)+','+str(qsample.Y()-0.05)
-                    +','+str(qsample.Y()+0.05)+','+str(qsample.Z()-peak_radius)+','+str(qsample.Z()+peak_radius),
+                    OutputExtents=str(qsample.X()-self.peak_radius)+','+str(qsample.X()+self.peak_radius)+','+str(qsample.Y()-0.05)
+                    +','+str(qsample.Y()+0.05)+','+str(qsample.Z()-self.peak_radius)+','+str(qsample.Z()+self.peak_radius),
                     OutputBins='100,1,100', Parallel=True)
                 #10 subplots per page
                 pcm=self.Plot2DMD(axs[j],sl2d, hkl, NumEvNorm=False)
@@ -214,6 +214,7 @@ class MantidEV():
             self.sumIsigI2 /=  self.npeaks/100.0
     
     def plot_Qpeaks(self):
+            plt.rcParams.update({'font.size': 10})
             CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self.ws,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
             try:
                 IndexPeaks( PeaksWorkspace = self.ws, Tolerance = 1.0, RoundHKLs = False )
@@ -265,8 +266,8 @@ class MantidEV():
                 "%\n# peaks indexed = "+str(self.numInd) + " out of " + str(self.npeaks) +
                 "\nLattice = " + " " + "{:.2f}".format(lattice.a()) + " " + "{:.2f}".format(lattice.b()) + " " + "{:.2f}".format(lattice.c()) + " " +
                 "{:.2f}".format(lattice.alpha()) + " " + "{:.2f}".format(lattice.beta()) + " " + "{:.2f}".format(lattice.gamma()) +
-                "\nClick on peak to see peak info." ,
-#                "\nClose window to load more data.",
+                "\nClick on peak to see peak info." +
+                "\nHold mouse button to rotate." ,
                 fontsize = 20, transform = self.axP.transAxes)
             self.axP.set_xlabel('Q$_X$')
             self.axP.set_ylabel('Q$_Y$')
