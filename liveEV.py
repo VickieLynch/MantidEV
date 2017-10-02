@@ -85,6 +85,7 @@ class MantidEV():
         self.c = np.array(self.c)
         self.c[self.c<=1] = 1.
         self.s = np.ones([len(self.c)]) * 20
+        plt.rcParams.update({'font.size': 6})
         fig = plt.figure("ReciprocalSpace"+str(self.events),figsize = (self.screen_x, self.screen_y))
         ax = fig.gca(projection = '3d')
         vmin = min(self.c)
@@ -148,11 +149,11 @@ class MantidEV():
                 FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = min_d, MaxD = max_d, Tolerance = tolerance )
                 SaveIsawUB(self.peaks_ws,"Peaks"+str(figNo)+".mat")
                 self.numInd,errInd = IndexPeaks( PeaksWorkspace = self.peaks_ws, Tolerance = tolerance, RoundHKLs = False )
+                #self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=0.5, WavelengthMax=3.5, MinDSpacing=0.5, OutputWorkspace="peaks")
             except:
                 self.numInd = 0
                 print "UB matrix not found"
 
-#            self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=0.5, WavelengthMax=3.5, MinDSpacing=0.5, OutputWorkspace="peaks")
             self.peaks_ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = peak_radius,
                               CoordinatesToUse = "Q (sample frame)",
                                 BackgroundOuterRadius = bkg_outer_radius,
@@ -258,9 +259,9 @@ class MantidEV():
                 lattice = OrientedLattice(1,1,1)
 
             self.axP.text2D(0.05, 0.70, "# Events = "+str(self.events)+
-                "\nPeaks with I/sigI > 10 = "+str(self.sumIsigI) +
-                "%\nPeaks with I/sigI > 5 = "+str(self.sumIsigI5) +
-                "%\nPeaks with I/sigI > 2 = "+str(self.sumIsigI2) +
+                "\nPeaks with I/sigI > 10 = "+'%.1f'%(self.sumIsigI) +
+                "%\nPeaks with I/sigI > 5 = "+'%.1f'%(self.sumIsigI5) +
+                "%\nPeaks with I/sigI > 2 = "+'%.1f'%(self.sumIsigI2) +
                 "%\n# peaks indexed = "+str(self.numInd) + " out of " + str(self.npeaks) +
                 "\nLattice = " + " " + "{:.2f}".format(lattice.a()) + " " + "{:.2f}".format(lattice.b()) + " " + "{:.2f}".format(lattice.c()) + " " +
                 "{:.2f}".format(lattice.alpha()) + " " + "{:.2f}".format(lattice.beta()) + " " + "{:.2f}".format(lattice.gamma()) +
