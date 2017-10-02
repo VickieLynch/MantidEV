@@ -43,8 +43,9 @@ class MantidEV():
             self.calFileName="TOPAZ_2016A.DetCal"
             self._wksp = Load(Filename=self.eventFileName,OutputWorkspace="events")
             self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="dSpacing",EMode="Elastic")
-        if phi not 0.0 or omega not 0.0:
-            SetGoniometer(Workspace=self._wksp)
+        try:
+            print "omega,chi,phi=",self._wksp.run().getGoniometer().getEulerAngles('YZY')
+        except:
             AddSampleLog(Workspace=self._wksp, LogName='phi', LogText=str(self.phi), LogType='Number')
             AddSampleLog(Workspace=self._wksp, LogName='chi', LogText=str(self.chi), LogType='Number')
             AddSampleLog(Workspace=self._wksp, LogName='omega', LogText=str(self.omega), LogType='Number')
