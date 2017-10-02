@@ -129,6 +129,7 @@ class MantidEV():
             bkg_outer_radius = self.peak_radius  * 1.25992105 # A factor of 2 ^ (1/3)
             #Create peaks for all 3D grid point about minIntensity
             self.ws = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace="events")
+            CopySample(InputWorkspace = self._md,OutputWorkspace = self.ws,CopyName = True,CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
             R=self._wksp.run().getGoniometer().getR()
         
             for i in range(len(self.x)):
