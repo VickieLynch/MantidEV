@@ -40,7 +40,6 @@ class MantidEV():
             props=input.run().getProperties()
             self._wksp = input
         except:
-            self.calFileName="TOPAZ_2016A.DetCal"
             self._wksp = Load(Filename=self.eventFileName,OutputWorkspace="events")
             self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="dSpacing",EMode="Elastic")
         try:
@@ -50,6 +49,7 @@ class MantidEV():
             AddSampleLog(Workspace=self._wksp, LogName='chi', LogText=str(self.chi), LogType='Number')
             AddSampleLog(Workspace=self._wksp, LogName='omega', LogText=str(self.omega), LogType='Number')
             SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
+            print self._wksp.run().getGoniometer().getEulerAngles('YZY')
         self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minDSpacing,OutputWorkspace="eventWksp")
         self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="Wavelength",EMode="Elastic")
         self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minWavelength, XMax = self.maxWavelength,OutputWorkspace="eventWksp")

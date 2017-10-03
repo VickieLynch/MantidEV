@@ -11,24 +11,24 @@ config['Q.convention'] = 'Crystallography'
 
 class MantidEV():
     def __init__(self):
-        self.eventFileName = "TOPAZ_15629"
+        self.eventFileName = "/home/vel/workspace/TOPAZ_15629_event.nxs"
         self.phi = -83.4225
         self.chi = 135.0
         self.omega = 53.172
-        self.calFileName = "/SNS/TOPAZ/shared/PeakIntegration/calibration/TOPAZ_2016A.DetCal"
+        self.calFileName = "/home/vel/workspace/TOPAZ_2016A.DetCal"
         self.minDSpacing = 0.5
         self.minWavelength = 0.5
         self.maxWavelength = 3.5
         self.sampleRadius = 0.0656
-        self.linSca = 0.67
+        self.linSca = 0.0
         self.linAbs = 0.733
         self.powerL = 4.0
         self.minQ = -20
         self.maxQ = 20
         self.numPeaksToFind = 200
-        self.abcMin = 6
+        self.abcMin = 6.0
         self.abcMax = 11
-        self.tolerance = 0.2
+        self.tolerance = 0.15
         self.peakRadius = 0.16
         self.minIntensity = 100
         self.nGrid = 410
@@ -50,6 +50,7 @@ class MantidEV():
             AddSampleLog(Workspace=self._wksp, LogName='chi', LogText=str(self.chi), LogType='Number')
             AddSampleLog(Workspace=self._wksp, LogName='omega', LogText=str(self.omega), LogType='Number')
             SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
+            print self._wksp.run().getGoniometer().getEulerAngles('YZY')
         self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minDSpacing,OutputWorkspace="eventWksp")
         self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="Wavelength",EMode="Elastic")
         self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minWavelength, XMax = self.maxWavelength,OutputWorkspace="eventWksp")
