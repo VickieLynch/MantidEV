@@ -230,6 +230,9 @@ class MantidEV():
                     figS, axs = plt.subplots(10, 10, sharex=False, sharey=False, figsize=(self.screen_x, self.screen_y))
                     figS.canvas.set_window_title('Peaks'+str(self.events))
                     axs = axs.flatten()
+            # do not draw axes for non-existant peaks
+            for k in range(j+1,len(axs)):
+                axs[k].axis('off')
             plt.show()
             self.sumIsigI /=  self.npeaks/100.0
             self.sumIsigI5 /=  self.npeaks/100.0

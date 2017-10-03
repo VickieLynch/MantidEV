@@ -79,6 +79,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.minIntensity =str( 100)
         self.nGrid=str(410)
         self.predictPeaks =str(0)
+        self.outputDirectory="."
 
     def change_phi(self):
         self.phi = self.toDouble(self.phi_ledt.text())
