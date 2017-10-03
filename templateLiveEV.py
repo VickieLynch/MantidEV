@@ -33,6 +33,7 @@ class MantidEV():
         self.minIntensity = {minIntensity}
         self.nGrid = {nGrid}
         self.predictPeaks = {predictPeaks}
+        self.outputDirectory = "{outputDirectory}"
         self.LorentzCorr = True
 
     def select_wksp(self):
@@ -167,7 +168,8 @@ class MantidEV():
          
             try:
                 FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = self.abcMin, MaxD = self.abcMax, Tolerance = self.tolerance )
-                SaveIsawUB(self.peaks_ws,"Peaks"+str(self.events)+".mat")
+                SaveIsawUB(self.peaks_ws, self.outputDirectory+"/Peaks"+str(self.events)+".mat")
+                print "UB matrix: ", self.outputDirectory+"/Peaks"+str(self.events)+".mat"
                 self.numInd,errInd = IndexPeaks( PeaksWorkspace = self.peaks_ws, Tolerance = self.tolerance, RoundHKLs = False )
                 if self.predictPeaks:
                     self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength, WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, OutputWorkspace="peaks")
@@ -180,7 +182,8 @@ class MantidEV():
                                 BackgroundOuterRadius = bkg_outer_radius,
                               BackgroundInnerRadius = bkg_inner_radius,
                                 PeaksWorkspace = self.peaks_ws, OutputWorkspace="peaks")
-            SaveIsawPeaks(self.peaks_ws,"Peaks"+str(self.events)+".integrate")
+            SaveIsawPeaks(self.peaks_ws, self.outputDirectory+"/Peaks"+str(self.events)+".integrate")
+            print "Peaks file: ", self.outputDirectory+"/Peaks"+str(self.events)+".integrate"
     
             self.npeaks = self.peaks_ws.getNumberPeaks()
             self.sumIsigI = 0.0

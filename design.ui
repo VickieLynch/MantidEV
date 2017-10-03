@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Dialog</class>
- <widget class="QDialog" name="Dialog">
+ <class>MantidEV</class>
+ <widget class="QDialog" name="MantidEV">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,13 +11,13 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>MantidEV</string>
   </property>
   <widget class="QDialogButtonBox" name="buttonBox">
    <property name="geometry">
     <rect>
-     <x>10</x>
-     <y>600</y>
+     <x>680</x>
+     <y>610</y>
      <width>461</width>
      <height>32</height>
     </rect>
@@ -170,7 +170,7 @@
         <x>0</x>
         <y>0</y>
         <width>19</width>
-        <height>14</height>
+        <height>8</height>
        </rect>
       </property>
       <property name="text">
@@ -473,7 +473,7 @@
         <x>0</x>
         <y>0</y>
         <width>18</width>
-        <height>14</height>
+        <height>8</height>
        </rect>
       </property>
       <property name="text">
@@ -776,7 +776,7 @@
         <x>0</x>
         <y>0</y>
         <width>43</width>
-        <height>14</height>
+        <height>8</height>
        </rect>
       </property>
       <property name="text">
@@ -1725,7 +1725,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>174</width>
+        <width>211</width>
         <height>14</height>
        </rect>
       </property>
@@ -2028,7 +2028,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>187</width>
+        <width>224</width>
         <height>14</height>
        </rect>
       </property>
@@ -2331,7 +2331,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>191</width>
+        <width>228</width>
         <height>14</height>
        </rect>
       </property>
@@ -2634,7 +2634,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>164</width>
+        <width>201</width>
         <height>14</height>
        </rect>
       </property>
@@ -2937,7 +2937,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>167</width>
+        <width>204</width>
         <height>14</height>
        </rect>
       </property>
@@ -3255,7 +3255,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>127</width>
+        <width>166</width>
         <height>14</height>
        </rect>
       </property>
@@ -3558,7 +3558,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>178</width>
+        <width>218</width>
         <height>14</height>
        </rect>
       </property>
@@ -3861,7 +3861,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>181</width>
+        <width>220</width>
         <height>14</height>
        </rect>
       </property>
@@ -4164,7 +4164,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>169</width>
+        <width>208</width>
         <height>14</height>
        </rect>
       </property>
@@ -4482,7 +4482,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>247</width>
+        <width>301</width>
         <height>14</height>
        </rect>
       </property>
@@ -4785,7 +4785,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>239</width>
+        <width>293</width>
         <height>14</height>
        </rect>
       </property>
@@ -5088,7 +5088,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>238</width>
+        <width>293</width>
         <height>14</height>
        </rect>
       </property>
@@ -5391,7 +5391,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>239</width>
+        <width>293</width>
         <height>14</height>
        </rect>
       </property>
@@ -6173,7 +6173,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>168</width>
+        <width>224</width>
         <height>14</height>
        </rect>
       </property>
@@ -6476,7 +6476,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>191</width>
+        <width>246</width>
         <height>14</height>
        </rect>
       </property>
@@ -6654,13 +6654,332 @@
     </item>
    </layout>
   </widget>
+  <widget class="QGroupBox" name="groupBox_9">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>570</y>
+     <width>505</width>
+     <height>62</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Output Directory</string>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_9">
+    <item>
+     <widget class="QLineEdit" name="outputDirectory_ledt">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>400</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="sizeIncrement">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="baseSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="palette">
+       <palette>
+        <active/>
+        <inactive/>
+        <disabled/>
+       </palette>
+      </property>
+      <property name="font">
+       <font/>
+      </property>
+      <property name="cursor">
+       <cursorShape>IBeamCursor</cursorShape>
+      </property>
+      <property name="mouseTracking">
+       <bool>true</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::StrongFocus</enum>
+      </property>
+      <property name="contextMenuPolicy">
+       <enum>Qt::DefaultContextMenu</enum>
+      </property>
+      <property name="updatesEnabled">
+       <bool>true</bool>
+      </property>
+      <property name="visible">
+       <bool>true</bool>
+      </property>
+      <property name="acceptDrops">
+       <bool>true</bool>
+      </property>
+      <property name="windowTitle">
+       <string/>
+      </property>
+      <property name="windowIconText">
+       <string/>
+      </property>
+      <property name="windowOpacity">
+       <double>1.000000000000000</double>
+      </property>
+      <property name="windowModified">
+       <bool>false</bool>
+      </property>
+      <property name="toolTip">
+       <string>Select the Event Data file if not Live Data</string>
+      </property>
+      <property name="statusTip">
+       <string/>
+      </property>
+      <property name="whatsThis">
+       <string/>
+      </property>
+      <property name="accessibleName">
+       <string/>
+      </property>
+      <property name="accessibleDescription">
+       <string/>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="locale">
+       <locale language="English" country="UnitedStates"/>
+      </property>
+      <property name="windowFilePath">
+       <string/>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhNone</set>
+      </property>
+      <property name="inputMask">
+       <string/>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+      <property name="maxLength">
+       <number>32767</number>
+      </property>
+      <property name="frame">
+       <bool>true</bool>
+      </property>
+      <property name="echoMode">
+       <enum>QLineEdit::Normal</enum>
+      </property>
+      <property name="cursorPosition">
+       <number>0</number>
+      </property>
+      <property name="modified">
+       <bool>false</bool>
+      </property>
+      <property name="dragEnabled">
+       <bool>false</bool>
+      </property>
+      <property name="readOnly">
+       <bool>false</bool>
+      </property>
+      <property name="placeholderText">
+       <string/>
+      </property>
+      <property name="cursorMoveStyle">
+       <enum>Qt::LogicalMoveStyle</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="outputDirectory_btn">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="sizeIncrement">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="baseSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="palette">
+       <palette>
+        <active/>
+        <inactive/>
+        <disabled/>
+       </palette>
+      </property>
+      <property name="font">
+       <font/>
+      </property>
+      <property name="cursor">
+       <cursorShape>ArrowCursor</cursorShape>
+      </property>
+      <property name="mouseTracking">
+       <bool>false</bool>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::StrongFocus</enum>
+      </property>
+      <property name="contextMenuPolicy">
+       <enum>Qt::DefaultContextMenu</enum>
+      </property>
+      <property name="updatesEnabled">
+       <bool>true</bool>
+      </property>
+      <property name="visible">
+       <bool>true</bool>
+      </property>
+      <property name="acceptDrops">
+       <bool>false</bool>
+      </property>
+      <property name="windowTitle">
+       <string/>
+      </property>
+      <property name="windowIconText">
+       <string/>
+      </property>
+      <property name="windowOpacity">
+       <double>1.000000000000000</double>
+      </property>
+      <property name="windowModified">
+       <bool>false</bool>
+      </property>
+      <property name="toolTip">
+       <string>Browse for the event file to be loaded.</string>
+      </property>
+      <property name="statusTip">
+       <string/>
+      </property>
+      <property name="whatsThis">
+       <string/>
+      </property>
+      <property name="accessibleName">
+       <string/>
+      </property>
+      <property name="accessibleDescription">
+       <string/>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
+      <property name="autoFillBackground">
+       <bool>false</bool>
+      </property>
+      <property name="styleSheet">
+       <string notr="true"/>
+      </property>
+      <property name="locale">
+       <locale language="English" country="UnitedStates"/>
+      </property>
+      <property name="windowFilePath">
+       <string/>
+      </property>
+      <property name="inputMethodHints">
+       <set>Qt::ImhNone</set>
+      </property>
+      <property name="text">
+       <string>Browse</string>
+      </property>
+      <property name="iconSize">
+       <size>
+        <width>16</width>
+        <height>16</height>
+       </size>
+      </property>
+      <property name="shortcut">
+       <string/>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+      <property name="checked">
+       <bool>false</bool>
+      </property>
+      <property name="autoRepeat">
+       <bool>false</bool>
+      </property>
+      <property name="autoExclusive">
+       <bool>false</bool>
+      </property>
+      <property name="autoRepeatDelay">
+       <number>300</number>
+      </property>
+      <property name="autoRepeatInterval">
+       <number>100</number>
+      </property>
+      <property name="down">
+       <bool>false</bool>
+      </property>
+      <property name="autoDefault">
+       <bool>true</bool>
+      </property>
+      <property name="default">
+       <bool>false</bool>
+      </property>
+      <property name="flat">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+   </layout>
+   <zorder>DataFileName_ledt</zorder>
+   <zorder>outputDirectory_ledt</zorder>
+   <zorder>outputDirectory_btn</zorder>
+  </widget>
  </widget>
  <resources/>
  <connections>
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>MantidEV</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -6676,7 +6995,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>Dialog</receiver>
+   <receiver>MantidEV</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

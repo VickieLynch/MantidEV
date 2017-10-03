@@ -8,7 +8,7 @@ import design  # This file holds our MainWindow and all design related things
 import os  # For listing filepath methods
 import string
 
-class MantidEV(QtGui.QMainWindow, design.Ui_Dialog):
+class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
     def __init__(self):
         # Explaining super is out of the scope of this article
         # So please google it if you're not familar with it
@@ -42,8 +42,8 @@ class MantidEV(QtGui.QMainWindow, design.Ui_Dialog):
         self.minIntensity_ledt.editingFinished.connect(self.change_minIntensity)
         self.numberGridPoints_ledt.editingFinished.connect(self.change_numberGridPoints)
         self.PredictPeaks_rbtn.clicked.connect(self.predict_peaks)  # When the button is pressed
-        #applyButton = self.buttonBox.button(QtGui.QDialogButtonBox.Apply)
-        #QtCore.QObject.connect(applyButton, QtCore.SIGNAL("clicked()"), self.accept)
+        self.outputDirectory_ledt.editingFinished.connect(self.change_dir)
+        self.outputDirectory_btn.clicked.connect(self.browse_dir)  # When the button is pressed
 
     def format_template(self, name, outfile, **kwargs):
         "This fills in the values for the template called 'name' and writes it to 'outfile'"
@@ -95,6 +95,9 @@ class MantidEV(QtGui.QMainWindow, design.Ui_Dialog):
     def change_cal_file(self):
         self.calFileName = self.CalFileName_ledt.text()
 
+    def change_dir(self):
+        self.outputDirectory = self.outputDirectory_ledt.text()
+
     def browse_file(self):
         self.eventFileName = QtGui.QFileDialog.getOpenFileName(self, 'Open File', '', '*.nxs *.h5') # Filename line
         if self.eventFileName:
@@ -104,6 +107,11 @@ class MantidEV(QtGui.QMainWindow, design.Ui_Dialog):
         self.calFileName = QtGui.QFileDialog.getOpenFileName(self, 'Open File', '', '*.DetCal') # Filename line
         if self.calFileName:
             self.CalFileName_ledt.setText(self.calFileName)
+
+    def browse_dir(self):
+        self.outputDirectory = QtGui.QFileDialog.getExistingDirectory(self, 'Select Directory', '', options=QtGui.QFileDialog.ShowDirsOnly)
+        if self.outputDirectory:
+            self.outputDirectory_ledt.setText(self.outputDirectory)
 
     def change_mindSpacing(self):
         self.minDSpacing = self.toDouble(self.MindSpacing_ledt.text())
@@ -173,10 +181,8 @@ class MantidEV(QtGui.QMainWindow, design.Ui_Dialog):
         #Generate liveEV.py file 
         
         name = "liveEV.py"
-        outdir = "/home/vel/MantidEV"
-        path = os.path.join(outdir, name)
-        template = "templateLiveEV.py"
-        templatePath = os.path.join(outdir, template)
+        path = self.outputDirectory+"/"+name
+        templatePath = "./templateLiveEV.py"
         kw = {
             "eventFileName": self.eventFileName,
             "phi": self.phi,
@@ -199,9 +205,11 @@ class MantidEV(QtGui.QMainWindow, design.Ui_Dialog):
             "peakRadius": self.peakRadius,
             "minIntensity": self.minIntensity,
             "nGrid": self.nGrid,
-            "predictPeaks": self.predictPeaks
+            "predictPeaks": self.predictPeaks,
+            "outputDirectory": self.outputDirectory
         }
         self.format_template(templatePath, path, **kw)
+        print "Python script for StartLiveData: ",path
         quit()
 
 def main():
