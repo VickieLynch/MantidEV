@@ -20,6 +20,8 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.setDefaults()
         self.DataFileName_ledt.editingFinished.connect(self.change_file)
         self.DataFile_btn.clicked.connect(self.browse_file)  # When the button is pressed
+        self.instrument_cmbx.currentIndexChanged.connect(self.change_instrument)
+        self.seconds_ledt.editingFinished.connect(self.change_seconds)
         self.phi_ledt.editingFinished.connect(self.change_phi)
         self.chi_ledt.editingFinished.connect(self.change_chi)
         self.omega_ledt.editingFinished.connect(self.change_omega)
@@ -57,10 +59,12 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             f.close()
 
     def setDefaults(self):
-        self.eventFileName=''
+        self.instrument = "TOPAZ"
+        self.seconds = str(60)
         self.phi =str( 0.0)
         self.chi =str( 135.0)
         self.omega =str( 0.0)
+        self.eventFileName=''
         self.calFileName=''
         self.minDSpacing =str( 0.5)
         self.minWavelength =str( 0.5)
@@ -80,6 +84,13 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.nGrid=str(410)
         self.predictPeaks =str(0)
         self.outputDirectory="."
+
+    def change_instrument(self):
+        self.instrument = self.instrument_cmbx.currentText()
+
+    def change_seconds(self):
+        temp = self.seconds_ledt.text()
+        self.seconds = int(temp)
 
     def change_phi(self):
         self.phi = self.toDouble(self.phi_ledt.text())
@@ -181,14 +192,17 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
     def accept(self):
         #Generate liveEV.py file 
         
-        name = "liveEV.py"
-        path = self.outputDirectory+"/"+name
+        path = self.outputDirectory+"/liveEV.py"
+        pathRun = self.outputDirectory+"/RunliveEV.py"
         templatePath = "./templateLiveEV.py"
+        templatePathRun = "./templateRunLiveEV.py"
         kw = {
-            "eventFileName": self.eventFileName,
+            "instrument": self.instrument,
+            "seconds": self.seconds,
             "phi": self.phi,
             "chi": self.chi,
             "omega": self.omega,
+            "eventFileName": self.eventFileName,
             "calFileName": self.calFileName,
             "minDSpacing": self.minDSpacing,
             "minWavelength": self.minWavelength,
@@ -210,7 +224,9 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             "outputDirectory": self.outputDirectory
         }
         self.format_template(templatePath, path, **kw)
-        print "Python script for StartLiveData: ",path
+        self.format_template(templatePathRun, pathRun, **kw)
+        print "PostProcessingScriptFilename for StartLiveData: ",path
+        print "Python script for running StartLiveData: ",pathRun
         quit()
 
 def main():

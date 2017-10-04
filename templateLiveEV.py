@@ -42,7 +42,6 @@ class MantidEV():
             self._wksp = input
         except:
             self._wksp = Load(Filename=self.eventFileName,OutputWorkspace="events")
-            self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="dSpacing",EMode="Elastic")
         try:
             print "omega,chi,phi=",self._wksp.run().getGoniometer().getEulerAngles('YZY')
         except:
@@ -51,17 +50,22 @@ class MantidEV():
             AddSampleLog(Workspace=self._wksp, LogName='omega', LogText=str(self.omega), LogType='Number')
             SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
             print self._wksp.run().getGoniometer().getEulerAngles('YZY')
-        self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minDSpacing,OutputWorkspace="eventWksp")
-        self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="Wavelength",EMode="Elastic")
-        self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minWavelength, XMax = self.maxWavelength,OutputWorkspace="eventWksp")
-        self.events = self._wksp.getNumberEvents()
+
         if self.calFileName:
             LoadIsawDetCal(InputWorkspace=self._wksp,Filename=str(self.calFileName))  # load cal file
+        
+        self.events = self._wksp.getNumberEvents()
+        if self.events > 0:
+            self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="dSpacing",EMode="Elastic")
+            self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minDSpacing,OutputWorkspace="eventWksp")
+            self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="Wavelength",EMode="Elastic")
+            self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minWavelength, XMax = self.maxWavelength,OutputWorkspace="eventWksp")
         if self.sampleRadius > 0:
             self._wksp = AnvredCorrection(InputWorkspace = self._wksp,LinearScatteringCoef = self.linSca,LinearAbsorptionCoef = self.linAbs,
                 Radius = self.sampleRadius,PowerLambda = self.powerL,OutputWorkspace="events")
             if self.powerL > 1.0:
                 self.LorentzCorr = False
+
         if self._wksp:
             output = ConvertToMD(InputWorkspace = self._wksp, QDimensions = 'Q3D', dEAnalysisMode = 'Elastic',
                  LorentzCorrection = self.LorentzCorr, OutputWorkspace='output',
