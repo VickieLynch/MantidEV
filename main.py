@@ -58,6 +58,12 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         finally:
             f.close()
 
+    def line_prepender(self, filename, line):
+        with open(filename, 'r+') as f:
+            content = f.read()
+            f.seek(0, 0)
+            f.write(line.rstrip('\r\n') + '\n' + content)
+
     def setDefaults(self):
         self.instrument = "TOPAZ"
         self.seconds = str(60)
@@ -192,10 +198,6 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
     def accept(self):
         #Generate liveEV.py file 
         
-        path = self.outputDirectory+"/liveEV.py"
-        pathRun = self.outputDirectory+"/RunliveEV.py"
-        templatePath = "./templateLiveEV.py"
-        templatePathRun = "./templateRunLiveEV.py"
         kw = {
             "instrument": self.instrument,
             "seconds": self.seconds,
@@ -223,10 +225,24 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             "predictPeaks": self.predictPeaks,
             "outputDirectory": self.outputDirectory
         }
-        self.format_template(templatePath, path, **kw)
-        self.format_template(templatePathRun, pathRun, **kw)
-        print "PostProcessingScriptFilename for StartLiveData: ",path
-        print "Python script for running StartLiveData: ",pathRun
+
+        templatePath = "./templateLiveEV.py"
+        if self.eventFileName:
+            path = self.outputDirectory+"/mantidEV.py"
+            self.format_template(templatePath, path, **kw)
+            #Reverse order since each line put at beginning
+            self.line_prepender(path, 'from mantid.simpleapi import *')
+            self.line_prepender(path, 'sys.path.append("/opt/mantidnightly/bin")')
+            self.line_prepender(path, 'import sys')
+            print "Python script for reducing NeXus file: ",path
+        else:
+            path = self.outputDirectory+"/liveEV.py"
+            pathRun = self.outputDirectory+"/RunliveEV.py"
+            templatePathRun = "./templateRunLiveEV.py"
+            self.format_template(templatePath, path, **kw)
+            print "PostProcessingScriptFilename for StartLiveData: ",path
+            self.format_template(templatePathRun, pathRun, **kw)
+            print "Python script for running StartLiveData: ",pathRun
         quit()
 
 def main():
