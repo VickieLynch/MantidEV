@@ -43,7 +43,11 @@ class MantidEV():
         except:
             self._wksp = Load(Filename=self.eventFileName,OutputWorkspace="events")
         try:
-            print "omega,chi,phi=",self._wksp.run().getGoniometer().getEulerAngles('YZY')
+            angles = self._wksp.run().getGoniometer().getEulerAngles('YZY')
+            if angles = V3D(0,0,0):
+                SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
+                angles = self._wksp.run().getGoniometer().getEulerAngles('YZY')
+            print "omega,chi,phi=",angles
         except:
             AddSampleLog(Workspace=self._wksp, LogName='phi', LogText=str(self.phi), LogType='Number')
             AddSampleLog(Workspace=self._wksp, LogName='chi', LogText=str(self.chi), LogType='Number')
@@ -55,11 +59,14 @@ class MantidEV():
             LoadIsawDetCal(InputWorkspace=self._wksp,Filename=str(self.calFileName))  # load cal file
         
         self.events = self._wksp.getNumberEvents()
-        if self.events > 0:
+        try:
             self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="dSpacing",EMode="Elastic")
             self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minDSpacing,OutputWorkspace="eventWksp")
             self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="Wavelength",EMode="Elastic")
             self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minWavelength, XMax = self.maxWavelength,OutputWorkspace="eventWksp")
+        except:
+            pass
+
         if self.sampleRadius > 0:
             self._wksp = AnvredCorrection(InputWorkspace = self._wksp,LinearScatteringCoef = self.linSca,LinearAbsorptionCoef = self.linAbs,
                 Radius = self.sampleRadius,PowerLambda = self.powerL,OutputWorkspace="events")

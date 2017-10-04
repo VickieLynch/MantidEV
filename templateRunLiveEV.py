@@ -5,8 +5,8 @@ sys.path.append("/opt/mantidnightly/bin")
 
 from mantid.simpleapi import *
 
-self.instrument = "{instrument}"
-self.seconds = {seconds}
-self.script = "{outputDirectory}"+"/liveEV.py"
-StartLiveData(Instrument=self.instrument, UpdateEvery = self.seconds, PreserveEvents=True,
-                  AccumulationMethod = "Add", OutputWorkspace="live", PostProcessingScriptFilename=self.script)
+instrument = "{instrument}"
+seconds = {seconds}
+script = "{outputDirectory}"+"/liveEV.py"
+StartLiveData(Instrument=instrument, UpdateEvery = seconds, PreserveEvents=True,
+                  AccumulationMethod = "Add", AccumulationWorkspace="tmp", OutputWorkspace="live", PostProcessingScriptFilename=script)
