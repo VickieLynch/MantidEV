@@ -43,16 +43,13 @@ class MantidEV():
             SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
         except:
             self._wksp = Load(Filename=self.eventFileName,OutputWorkspace="events")
-        try:
-            angles = self._wksp.run().getGoniometer().getEulerAngles('YZY')
-            print "omega,chi,phi=",angles
-        except:
-            print "try did not work"
+        angles = self._wksp.run().getGoniometer().getEulerAngles('YZY')
+        if angles == [0,0,0]:
             AddSampleLog(Workspace=self._wksp, LogName='phi', LogText=str(self.phi), LogType='Number')
             AddSampleLog(Workspace=self._wksp, LogName='chi', LogText=str(self.chi), LogType='Number')
             AddSampleLog(Workspace=self._wksp, LogName='omega', LogText=str(self.omega), LogType='Number')
             SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
-            print self._wksp.run().getGoniometer().getEulerAngles('YZY')
+        print "omega,chi,phi=",angles
 
         if self.calFileName:
             LoadIsawDetCal(InputWorkspace=self._wksp,Filename=str(self.calFileName))  # load cal file
