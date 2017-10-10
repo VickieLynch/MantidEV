@@ -156,10 +156,10 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.minQ = self.toDouble(self.minQspace_ledt.text())
 
     def change_maxQ(self):
-        self.maxQ = self.toDouble(self.MaxQspace_ledt.text())
+        self.maxQ = self.toDouble(self.maxQspace_ledt.text())
 
     def toDouble(self, temp):
-        if temp.contains('.'):
+        if temp.contains('.') or temp.contains("e"):
             result = float(temp)
         else:
             temp_int = int(temp)
