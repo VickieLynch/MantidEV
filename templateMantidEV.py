@@ -44,11 +44,12 @@ class MantidEV():
         except:
             self._wksp = Load(Filename=self.eventFileName,OutputWorkspace="events")
         angles = self._wksp.run().getGoniometer().getEulerAngles('YZY')
-        if angles == [0,0,0]:
+        if angles[1] == 0.0:
             AddSampleLog(Workspace=self._wksp, LogName='phi', LogText=str(self.phi), LogType='Number')
             AddSampleLog(Workspace=self._wksp, LogName='chi', LogText=str(self.chi), LogType='Number')
             AddSampleLog(Workspace=self._wksp, LogName='omega', LogText=str(self.omega), LogType='Number')
             SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
+            angles = self._wksp.run().getGoniometer().getEulerAngles('YZY')
         print "omega,chi,phi=",angles
 
         if self.calFileName:

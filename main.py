@@ -196,7 +196,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         quit()
         
     def accept(self):
-        #Generate liveEV.py file 
+        #Generate MantidEV.py file 
         
         kw = {
             "instrument": self.instrument,
@@ -226,7 +226,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             "outputDirectory": self.outputDirectory
         }
 
-        templatePath = "./templateLiveEV.py"
+        templatePath = "./templateMantidEV.py"
         if self.eventFileName:
             path = self.outputDirectory+"/mantidEV.py"
             self.format_template(templatePath, path, **kw)
@@ -236,9 +236,9 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             self.line_prepender(path, 'import sys')
             print "Python script for reducing NeXus file: ",path
         else:
-            path = self.outputDirectory+"/liveEV.py"
-            pathRun = self.outputDirectory+"/RunliveEV.py"
-            templatePathRun = "./templateRunLiveEV.py"
+            path = self.outputDirectory+"/MantidEV.py"
+            pathRun = self.outputDirectory+"/runMantidEV.py"
+            templatePathRun = "./templateRunMantidEV.py"
             self.format_template(templatePath, path, **kw)
             print "PostProcessingScriptFilename for StartLiveData: ",path
             self.format_template(templatePathRun, pathRun, **kw)
