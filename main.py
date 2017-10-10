@@ -132,7 +132,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             self.outputDirectory_ledt.setText(self.outputDirectory)
 
     def change_mindSpacing(self):
-        self.minDSpacing = self.toDouble(self.MindSpacing_ledt.text())
+        self.minDSpacing = self.toDouble(self.mindSpacing_ledt.text())
 
     def change_minWavelength(self):
         self.minWavelength = self.toDouble(self.minWavelength_ledt.text())
@@ -153,7 +153,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.powerL = self.toDouble(self.powerWavelength_ledt.text())
 
     def change_minQ(self):
-        self.minQ = self.toDouble(self.MinQspace_ledt.text())
+        self.minQ = self.toDouble(self.minQspace_ledt.text())
 
     def change_maxQ(self):
         self.maxQ = self.toDouble(self.MaxQspace_ledt.text())

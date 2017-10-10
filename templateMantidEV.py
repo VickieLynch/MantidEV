@@ -42,7 +42,7 @@ class MantidEV():
             self._wksp = input
             SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
         except:
-            self._wksp = Load(Filename=self.eventFileName,OutputWorkspace="events")
+            self._wksp = Load(Filename=self.eventFileName,OutputWorkspace="eventWksp")
         angles = self._wksp.run().getGoniometer().getEulerAngles('YZY')
         if angles[1] == 0.0:
             AddSampleLog(Workspace=self._wksp, LogName='phi', LogText=str(self.phi), LogType='Number')
