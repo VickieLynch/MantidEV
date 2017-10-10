@@ -228,13 +228,13 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
 
         templatePath = "./templateMantidEV.py"
         if self.eventFileName:
-            path = self.outputDirectory+"/mantidEV.py"
+            path = self.outputDirectory+"/MantidEV.py"
             self.format_template(templatePath, path, **kw)
             #Reverse order since each line put at beginning
             self.line_prepender(path, 'from mantid.simpleapi import *')
             self.line_prepender(path, 'sys.path.append("/opt/mantidnightly/bin")')
             self.line_prepender(path, 'import sys')
-            print "Python script for reducing NeXus file: ",path
+            print "Python script for NeXus file: ",path
         else:
             path = self.outputDirectory+"/MantidEV.py"
             pathRun = self.outputDirectory+"/runMantidEV.py"

@@ -401,6 +401,9 @@ class MantidEV():
 if __name__ == '__main__':  # if we're running file directly and not importing it
     test = MantidEV()  # run the main function
     test.select_wksp()
-    test.plot_Q()
-    test.plot_peaks()
-    test.plot_Qpeaks()
+    if test.events > 0:
+        test.plot_Q()
+        test.plot_peaks()
+        test.plot_Qpeaks()
+    else:
+        print "No events"

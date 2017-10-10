@@ -9,4 +9,4 @@ instrument = "{instrument}"
 seconds = {seconds}
 script = "{outputDirectory}"+"/MantidEV.py"
 StartLiveData(Instrument=instrument, UpdateEvery = seconds, PreserveEvents=True,
-                  AccumulationMethod = "Add", AccumulationWorkspace="tmp", OutputWorkspace="live", PostProcessingScriptFilename=script)
+                  AccumulationMethod = "Add", AccumulationWorkspace="tmp", OutputWorkspace="output", PostProcessingScriptFilename=script)
