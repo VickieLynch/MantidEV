@@ -297,6 +297,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             self.line_prepender(path, 'sys.path.append("/opt/mantidnightly/bin")')
             self.line_prepender(path, 'import sys')
             print "Python script for NeXus file: ",path
+            os.system("mantidpython "+str(path))
         else:
             path = self.outputDirectory+"/MantidEV.py"
             pathRun = self.outputDirectory+"/runMantidEV.py"
@@ -305,6 +306,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             print "PostProcessingScriptFilename for StartLiveData: ",path
             self.format_template(templatePathRun, pathRun, **kw)
             print "Python script for running StartLiveData: ",pathRun
+            os.system("mantidpython "+str(pathRun))
         quit()
 
 def main():

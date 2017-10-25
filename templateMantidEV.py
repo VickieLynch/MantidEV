@@ -106,7 +106,9 @@ class MantidEV():
     def csv_write(self, X):
         import csv
 
-        f = open('crystal.csv', 'wt')
+        fileName = self.outputDirectory+"/CrystalPlan"+str(self.events)+".csv"
+        print "Goniometer plan: ", fileName
+        f = open(fileName, 'wt')
         pcharge = str(1.76e+13)
         comment = '\"text\"'
         try:
@@ -119,7 +121,7 @@ class MantidEV():
         finally:
             f.close()
 
-        print open('crystal.csv', 'rt').read()
+        print open(fileName, 'rt').read()
 
     def optimize(self, seed):
         # the starting point
@@ -282,7 +284,7 @@ class MantidEV():
                 self.x = np.append(self.x,qsample.X())
                 self.y = np.append(self.y,qsample.Y())
                 self.z = np.append(self.z,qsample.Z())
-                self.s = np.append(self.s,160)
+                self.s = np.append(self.s,320)
                 sl2d = BinMD(InputWorkspace=self._md, AxisAligned=False, BasisVector0='Q_sample_x,Angstrom^-1,1,0,0',
                     BasisVector1='Q_sample_y,Angstrom^-1,0,1,0', BasisVector2='Q_sample_z,Angstrom^-1,0,0,1',
                     OutputExtents=str(qsample.X()-self.peakRadius)+','+str(qsample.X()+self.peakRadius)+','+str(qsample.Y()-0.05)
