@@ -8,6 +8,9 @@ from mantid.kernel import V3D
 from mantid import config
 ConfigService.setConsoleLogLevel(2)
 config['Q.convention'] = 'Crystallography'
+from scipy.optimize import basinhopping
+from multiprocessing.dummy import Pool as ThreadPool
+from multiprocessing.dummy import current_process
 
 class MantidEV():
     def __init__(self):
@@ -35,6 +38,13 @@ class MantidEV():
         self.predictPeaks = {predictPeaks}
         self.outputDirectory = "{outputDirectory}"
         self.LorentzCorr = True
+        self.numOrientations = {numOrientations}
+        self.edgePixels = {edgePixels}
+        self.changePhi = {changePhi}
+        self.changeChi = {changeChi}
+        self.changeOmega = {changeOmega}
+        self.useSymmetry = {useSymmetry}
+        self.addOrientations = {addOrientations}
 
     def select_wksp(self):
         try:
@@ -77,6 +87,55 @@ class MantidEV():
                  MinValues = str(self.minQ)+','+str(self.minQ)+','+str(self.minQ),
                  MaxValues = str(self.maxQ)+','+str(self.maxQ)+','+str(self.maxQ))
             self._md = output
+
+    def crystalplan(self):
+        CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self._wksp,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
+        pool = ThreadPool(2)
+        threadNo = range(2)
+        results = pool.map(self.optimize, threadNo)
+        minPeaks = 0
+        for i in range(len(results)):
+            if results[i].fun < minPeaks:
+                X = results[i].x
+                minPeaks = results[i].fun
+        pool.close()
+        pool.join()
+        self.csv_write(X)
+        self.fopt(X)
+
+    def csv_write(self, X):
+        import csv
+
+        f = open('crystal.csv', 'wt')
+        pcharge = str(1.76e+13)
+        comment = '\"text\"'
+        try:
+            writer = csv.writer(f, quotechar = "'")
+            writer.writerow( ('#Title:','\"text\"'))
+            writer.writerow( ('#Comment:',''))
+            writer.writerow( ('Phi', 'Omega', 'CountFor', 'CountValue', 'Comment') )
+            for i in range(10):
+                writer.writerow((X[2*i], X[2*i+1], 'pcharge', pcharge, comment))
+        finally:
+            f.close()
+
+        print open('crystal.csv', 'rt').read()
+
+    def optimize(self, seed):
+        # the starting point
+        np.random.seed(seed)
+        # the starting point
+        x0 = []
+        for i in range(2*self.numOrientations):
+            x0.append(np.random.uniform(0., 360.0))
+        
+        # define the new step taking routine and pass it to basinhopping
+        mytakestep = RandomDisplacementBounds(0.0, 360.0)
+        
+        # use method
+        minimizer_kwargs = dict(method="Nelder-Mead", options={{'disp': True, 'ftol':1.00, 'maxiter':3, 'maxfev':15}})
+        result = basinhopping(self.f, x0, niter=1, minimizer_kwargs=minimizer_kwargs, take_step=mytakestep)
+        return result
 
     def orthogonal_proj(self, zfront, zback):
         a = (zfront+zback)/(zfront-zback)
@@ -396,6 +455,81 @@ class MantidEV():
              ans.append(arr2)
          return tuple(ans)
  
+    def addOrientation(self, x, id):
+        ivar = 0
+        if self.changePhi:
+            AddSampleLog(Workspace=self._wksp, LogName='phi', LogText=str(x[ivar]), LogType='Number')
+            ivar += 1
+        if self.changeChi:
+            AddSampleLog(Workspace=self._wksp, LogName='chi', LogText=str(x[ivar]), LogType='Number')
+            ivar += 1
+        if self.changeOmega:
+            AddSampleLog(Workspace=self._wksp, LogName='omega', LogText=str(x[ivar]), LogType='Number')
+        SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
+        peaks = PredictPeaks(InputWorkspace=self._wksp, WavelengthMin=self.minWavelength, 
+            EdgePixels=self.edgePixels,
+            WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, OutputWorkspace='result'+str(id)+current_process().name)
+        return peaks
+        
+    def f(self, x): 
+        listoflists = zip(*[iter(x)]*2)
+        result = self.addOrientation(listoflists[0], 0)
+        peaks = RenameWorkspace(InputWorkspace=result, OutputWorkspace='peaks'+current_process().name)
+        for i in range(1, len(listoflists)):
+            result = self.addOrientation(listoflists[i], i)
+            peaks = CombinePeaksWorkspaces(peaks, result, OutputWorkspace='peaks'+current_process().name)
+            AnalysisDataService.remove( result.getName() )
+        unique, completeness, redundancy, multiple = CountReflections(peaks, PointGroup='-1',
+                                                              LatticeCentering='P', MinDSpacing=self.minDSpacing,
+                                                              MissingReflectionsWorkspace='')
+        return -unique
+    
+    def fopt(self, x): 
+        listoflists = zip(*[iter(x)]*2)
+        result = self.addOrientation(listoflists[0], 0)
+        peaks = RenameWorkspace(InputWorkspace=result, OutputWorkspace='peaks'+current_process().name)
+        for i in range(1, len(listoflists)):
+            result = self.addOrientation(listoflists[i], i)
+            peaks = CombinePeaksWorkspaces(peaks, result, OutputWorkspace='peaks'+current_process().name)
+            AnalysisDataService.remove( result.getName() )
+        unique, completeness, redundancy, multiple = CountReflections(peaks, PointGroup='-1',
+                                                              LatticeCentering='P', MinDSpacing=self.minDSpacing,
+                                                              MissingReflectionsWorkspace='')
+        print('             Peaks: {{0}}'.format(peaks.getNumberPeaks()))
+        print('            Unique: {{0}}'.format(unique))
+        print('      Completeness: {{0}}%'.format(round(completeness * 100, 2)))
+        print('        Redundancy: {{0}}'.format(round(redundancy, 2)))
+        print(' Multiply observed: {{0}}%'.format(round(multiple*100, 2)))
+    
+    
+    def func(self, x):
+        fx = self.f(x)
+        """ Derivative of objective function """
+        eps = 10
+        dfdx = []
+        for i in range(2*self.numOrientations):
+            x2 = list(x)
+            x2[i] = x[i]+eps
+            dfdx.append(self.f(x2)-fx)
+        dfdx_array = np.array(dfdx)
+        return fx, dfdx_array
+
+    
+class RandomDisplacementBounds(object):
+    """random displacement with bounds"""
+    def __init__(self, xmin, xmax, stepsize=30.0):
+        self.xmin = xmin
+        self.xmax = xmax
+        self.stepsize = stepsize
+
+    def __call__(self, x):
+        """take a random step but ensure the new position is within the bounds"""
+        while True:
+            xnew = x + np.random.uniform(-self.stepsize, self.stepsize, np.shape(x))
+            if np.all(xnew < self.xmax) and np.all(xnew > self.xmin):
+                break
+        return xnew
+
 
 
 if __name__ == '__main__':  # if we're running file directly and not importing it
@@ -407,3 +541,7 @@ if __name__ == '__main__':  # if we're running file directly and not importing i
         test.plot_Qpeaks()
     else:
         print "No events"
+
+    if test.numOrientations > 0:
+        test.crystalplan()
+

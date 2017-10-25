@@ -22,9 +22,9 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.DataFile_btn.clicked.connect(self.browse_file)  # When the button is pressed
         self.instrument_cmbx.currentIndexChanged.connect(self.change_instrument)
         self.seconds_ledt.editingFinished.connect(self.change_seconds)
-        self.phi_ledt.editingFinished.connect(self.change_phi)
-        self.chi_ledt.editingFinished.connect(self.change_chi)
-        self.omega_ledt.editingFinished.connect(self.change_omega)
+        self.phi_ledt.editingFinished.connect(self.input_phi)
+        self.chi_ledt.editingFinished.connect(self.input_chi)
+        self.omega_ledt.editingFinished.connect(self.input_omega)
         self.CalFileName_ledt.editingFinished.connect(self.change_cal_file)
         self.CalFile_btn.clicked.connect(self.browse_cal_file)  # When the button is pressed
         self.mindSpacing_ledt.editingFinished.connect(self.change_mindSpacing)
@@ -43,7 +43,14 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.peakRadius_ledt.editingFinished.connect(self.change_peakRadius)
         self.minIntensity_ledt.editingFinished.connect(self.change_minIntensity)
         self.numberGridPoints_ledt.editingFinished.connect(self.change_numberGridPoints)
-        self.PredictPeaks_rbtn.clicked.connect(self.predict_peaks)  # When the button is pressed
+        self.predictPeaks_chbx.stateChanged.connect(self.predict_peaks)  # When the button is pressed
+        self.numOrientations_ledt.editingFinished.connect(self.change_numOrientations)
+        self.edgePixels_ledt.editingFinished.connect(self.change_edgePixels)
+        self.changePhi_chbx.stateChanged.connect(self.change_phi)  # When the button is pressed
+        self.changeChi_chbx.stateChanged.connect(self.change_chi)  # When the button is pressed
+        self.changeOmega_chbx.stateChanged.connect(self.change_omega)  # When the button is pressed
+        self.useSymmetry_chbx.stateChanged.connect(self.use_symmetry)  # When the button is pressed
+        self.addOrientations_chbx.stateChanged.connect(self.add_orientations)  # When the button is pressed
         self.outputDirectory_ledt.editingFinished.connect(self.change_dir)
         self.outputDirectory_btn.clicked.connect(self.browse_dir)  # When the button is pressed
 
@@ -89,6 +96,13 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.minIntensity =str( 100)
         self.nGrid=str(410)
         self.predictPeaks =str(0)
+        self.numOrientations=str(0)
+        self.edgePixels=str(20)
+        self.changePhi=str(1)
+        self.changeChi=str(0)
+        self.changeOmega=str(1)
+        self.useSymmetry=str(0)
+        self.addOrientations=str(0)
         self.outputDirectory="."
 
     def change_instrument(self):
@@ -98,13 +112,13 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         temp = self.seconds_ledt.text()
         self.seconds = int(temp)
 
-    def change_phi(self):
+    def input_phi(self):
         self.phi = self.toDouble(self.phi_ledt.text())
 
-    def change_chi(self):
+    def input_chi(self):
         self.chi = self.toDouble(self.chi_ledt.text())
 
-    def change_omega(self):
+    def input_omega(self):
         self.omega = self.toDouble(self.omega_ledt.text())
 
     def change_file(self):
@@ -166,8 +180,41 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             result = float(temp_int)
         return result
 
-    def predict_peaks(self):
-        self.predictPeaks = not self.predictPeaks
+    def predict_peaks(self, state):
+        if state == QtCore.Qt.Checked:
+            self.predictPeaks = True
+        else:
+            self.predictPeaks = False
+
+    def change_phi(self, state):
+        if state == QtCore.Qt.Checked:
+            self.changePhi = True
+        else:
+            self.changePhi = False
+
+    def change_chi(self, state):
+        if state == QtCore.Qt.Checked:
+            self.changeChi = True
+        else:
+            self.changeChi = False
+
+    def change_omega(self, state):
+        if state == QtCore.Qt.Checked:
+            self.changeOmega = True
+        else:
+            self.changeOmega = False
+
+    def use_symmetry(self, state):
+        if state == QtCore.Qt.Checked:
+            self.useSymmetry = True
+        else:
+            self.useSymmetry = False
+
+    def add_orientations(self, state):
+        if state == QtCore.Qt.Checked:
+            self.addOrientations = True
+        else:
+            self.addOrientations = False
 
     def change_numPeaks(self):
         temp = self.numberPeaks_ledt.text()
@@ -191,6 +238,14 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
     def change_numberGridPoints(self):
         temp = self.numberGridPoints_ledt.text()
         self.nGrid = int(temp)
+
+    def change_numOrientations(self):
+        temp = self.numOrientations_ledt.text()
+        self.numOrientations = int(temp)
+
+    def change_edgePixels(self):
+        temp = self.edgePixels_ledt.text()
+        self.edgePixels = int(temp)
 
     def reject(self):
         quit()
@@ -223,6 +278,13 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             "minIntensity": self.minIntensity,
             "nGrid": self.nGrid,
             "predictPeaks": self.predictPeaks,
+            "numOrientations": self.numOrientations,
+            "edgePixels": self.edgePixels,
+            "changePhi": self.changePhi,
+            "changeChi": self.changeChi,
+            "changeOmega": self.changeOmega,
+            "useSymmetry": self.useSymmetry,
+            "addOrientations": self.addOrientations,
             "outputDirectory": self.outputDirectory
         }
 
