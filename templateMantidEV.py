@@ -390,6 +390,84 @@ class MantidEV():
                self.axP.plot([xb], [yb], [zb], 'w')
             plt.show()
 
+    def plot_crystalplan(self, unique, completeness, redundancy, multiple):
+            self.x = []
+            self.y = []
+            self.z = []
+            self.c = []
+            self.s = []
+            plt.rcParams.update({{'font.size': 10}})
+            npeaksTotal = self.ws.getNumberPeaks()
+            for i in range(npeaksTotal):
+                    peak = self.ws.getPeak(i)
+                    qsample = peak.getQSampleFrame()
+                    intensity = peak.getIntensity()
+                    self.c = np.append(self.c,max(self.minIntensity,intensity))
+                    self.x = np.append(self.x,qsample.X())
+                    self.y = np.append(self.y,qsample.Y())
+                    self.z = np.append(self.z,qsample.Z())
+                    self.s = np.append(self.s,20)
+                    if peak.getSigmaIntensity() !=  0.0:
+                        IsigI = peak.getIntensity()/peak.getSigmaIntensity()
+                    else:
+                        IsigI = 0.0
+                    detID = int(peak.getDetectorID())
+                    bank = self.instrument.getDetector(detID).getName()
+                    self.text.append('Counts:'+'%.3f'%(peak.getBinCount())
+                        + '\nIntegral, I/sigI:'+'%.3f %.3f'%(peak.getIntensity(),IsigI)
+                        +'\nDetector Number:'+bank
+                        +'\nh,k,l:'+'%.3f %.3f %.3f'%(peak.getH(),peak.getK(),peak.getL())
+                        +'\nQ$_X$,Q$_Y$,Q$_Z$:'+'%.3f %.3f %.3f'%(self.x[i],self.y[i],self.z[i])
+                        +'\nQ($\AA^{{-1}}, 2\pi/d$):'+'%.3f'%(2*np.pi/peak.getDSpacing())
+                        +'\nd-Spacing($\AA$):'+'%.3f'%(peak.getDSpacing())
+                        +'\nWavelength($\AA$):'+'%.3f'%(peak.getWavelength())
+                        +'\n2$\\theta$($^\circ$):'+'%.3f'%(peak.getScattering())
+                        +'\nTime($\mu$s):'+'%.3f'%(peak.getTOF())
+                        +'\nE(meV):'+'%.3f'%(peak.getFinalEnergy()))
+            figP = plt.figure("CrystalPlan"+str(self.events),figsize = (self.screen_x, self.screen_y))
+            self.axP = figP.gca(projection = '3d')
+            self.c[self.c<=1] = 1.
+            vmin = min(self.c)
+            vmax = max(self.c)
+            cm = plt.cm.get_cmap('rainbow')
+            logNorm = colors.LogNorm(vmin = vmin, vmax = vmax)
+            sp = self.axP.scatter(self.x, self.y, self.z, c = self.c, vmin = vmin, vmax = vmax, cmap = cm, norm = logNorm, s = self.s, alpha = 0.2, picker = True)
+            self.props = dict(boxstyle = 'round', facecolor = 'wheat', alpha = 1.0)
+    
+            figP.canvas.mpl_connect('pick_event', self.onpick3)
+
+            try:
+                lattice = self.peaks_ws.sample().getOrientedLattice()
+            except:
+                lattice = OrientedLattice(1,1,1)
+
+            self.axP.text2D(0.05, 0.70, "Peaks = "+str(npeaksTotal)+
+                '\nUnique: {{0}}'.format(unique)+
+                '\nCompleteness: {{0}}%'.format(round(completeness * 100, 2))+
+                '\nRedundancy: {{0}}'.format(round(redundancy, 2))+
+                '\nMultiply observed: {{0}}%'.format(round(multiple*100, 2))+
+                "\nLattice = " + " " + "{{:.2f}}".format(lattice.a()) + " " + "{{:.2f}}".format(lattice.b()) + " " + "{{:.2f}}".format(lattice.c()) + " " +
+                "{{:.2f}}".format(lattice.alpha()) + " " + "{{:.2f}}".format(lattice.beta()) + " " + "{{:.2f}}".format(lattice.gamma()) +
+                "\nClick on peak to see peak info." +
+                "\nHold mouse button to rotate." ,
+                fontsize = 20, transform = self.axP.transAxes)
+            self.axP.set_xlabel('Q$_X$')
+            self.axP.set_ylabel('Q$_Y$')
+            self.axP.set_zlabel('Q$_Z$')
+    
+    
+            formatter = LogFormatter(10, labelOnlyBase = False)
+            plt.colorbar(sp,ticks = [1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000], format = formatter)
+            # Create cubic bounding box to simulate equal aspect ratio
+            max_range = max([max(self.x)-min(self.x), max(self.y)-min(self.y), max(self.z)-min(self.z)])
+            Xb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][0].flatten() + 0.5*(max(self.x)+min(self.x))
+            Yb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][1].flatten() + 0.5*(max(self.y)+min(self.y))
+            Zb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][2].flatten() + 0.5*(max(self.z)+min(self.z))
+            # Comment or uncomment following both lines to test the fake bounding box:
+            for xb, yb, zb in zip(Xb, Yb, Zb):
+               self.axP.plot([xb], [yb], [zb], 'w')
+            plt.show()
+
     def onpick3(self, event):
             ind = event.ind
             zdirs = None
@@ -499,19 +577,20 @@ class MantidEV():
     def fopt(self, x): 
         listoflists = zip(*[iter(x)]*2)
         result = self.addOrientation(listoflists[0], 0)
-        peaks = RenameWorkspace(InputWorkspace=result, OutputWorkspace='peaks'+current_process().name)
+        self.ws = RenameWorkspace(InputWorkspace=result, OutputWorkspace='peaks'+current_process().name)
         for i in range(1, len(listoflists)):
             result = self.addOrientation(listoflists[i], i)
-            peaks = CombinePeaksWorkspaces(peaks, result, OutputWorkspace='peaks'+current_process().name)
+            self.ws = CombinePeaksWorkspaces(self.ws, result, OutputWorkspace='peaks'+current_process().name)
             AnalysisDataService.remove( result.getName() )
-        unique, completeness, redundancy, multiple = CountReflections(peaks, PointGroup='-1',
+        unique, completeness, redundancy, multiple = CountReflections(self.ws, PointGroup='-1',
                                                               LatticeCentering='P', MinDSpacing=self.minDSpacing,
                                                               MissingReflectionsWorkspace='')
-        print('             Peaks: {{0}}'.format(peaks.getNumberPeaks()))
+        print('             Peaks: {{0}}'.format(self.ws.getNumberPeaks()))
         print('            Unique: {{0}}'.format(unique))
         print('      Completeness: {{0}}%'.format(round(completeness * 100, 2)))
         print('        Redundancy: {{0}}'.format(round(redundancy, 2)))
         print(' Multiply observed: {{0}}%'.format(round(multiple*100, 2)))
+        self.plot_crystalplan(unique, completeness, redundancy, multiple)
     
     
     def func(self, x):
