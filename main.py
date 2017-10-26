@@ -30,6 +30,8 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.mindSpacing_ledt.editingFinished.connect(self.change_mindSpacing)
         self.minWavelength_ledt.editingFinished.connect(self.change_minWavelength)
         self.maxWavelength_ledt.editingFinished.connect(self.change_maxWavelength)
+        self.pointGroup_cmbx.currentIndexChanged.connect(self.change_pointGroup)
+        self.centering_cmbx.currentIndexChanged.connect(self.change_centering)
         self.sampleRadius_ledt.editingFinished.connect(self.change_sampleRadius)
         self.linScatt_ledt.editingFinished.connect(self.change_linScatt)
         self.linAbs_ledt.editingFinished.connect(self.change_linAbs)
@@ -92,6 +94,8 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.abcMin =str( 3)
         self.abcMax =str( 11)
         self.tolerance =str( 0.15)
+        self.pointGroup = "-1"
+        self.centering = "P"
         self.peakRadius =str( 0.15)
         self.minIntensity =str( 100)
         self.nGrid=str(410)
@@ -107,6 +111,12 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
 
     def change_instrument(self):
         self.instrument = self.instrument_cmbx.currentText()
+
+    def change_pointGroup(self):
+        self.pointGroup = self.pointGroup_cmbx.currentText()
+
+    def change_centering(self):
+        self.centering = self.centering_cmbx.currentText()
 
     def change_seconds(self):
         temp = self.seconds_ledt.text()
@@ -274,6 +284,8 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             "abcMin": self.abcMin,
             "abcMax": self.abcMax,
             "tolerance": self.tolerance,
+            "pointGroup": self.pointGroup,
+            "centering": self.centering,
             "peakRadius": self.peakRadius,
             "minIntensity": self.minIntensity,
             "nGrid": self.nGrid,

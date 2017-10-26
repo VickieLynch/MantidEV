@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1196</width>
-    <height>706</height>
+    <height>803</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -3439,7 +3439,7 @@
    <property name="geometry">
     <rect>
      <x>-10</x>
-     <y>390</y>
+     <y>450</y>
      <width>1211</width>
      <height>56</height>
     </rect>
@@ -3534,7 +3534,7 @@
        <bool>false</bool>
       </property>
       <property name="toolTip">
-       <string>Radius of peak to use for spherical integration (units of Q) Background is this value multiplied by 2^(1/3)</string>
+       <string>Radius of peak to use for spherical integration (units of Q) Background shell is from radius to radius multiplied by 2^(1/3)</string>
       </property>
       <property name="statusTip">
        <string/>
@@ -3620,7 +3620,7 @@
    <property name="geometry">
     <rect>
      <x>-10</x>
-     <y>450</y>
+     <y>510</y>
      <width>1211</width>
      <height>56</height>
     </rect>
@@ -3954,7 +3954,7 @@
    <property name="geometry">
     <rect>
      <x>-10</x>
-     <y>510</y>
+     <y>570</y>
      <width>1211</width>
      <height>56</height>
     </rect>
@@ -4344,7 +4344,7 @@
    <property name="geometry">
     <rect>
      <x>-10</x>
-     <y>580</y>
+     <y>640</y>
      <width>1211</width>
      <height>62</height>
     </rect>
@@ -4673,7 +4673,7 @@
    <property name="geometry">
     <rect>
      <x>530</x>
-     <y>660</y>
+     <y>720</y>
      <width>160</width>
      <height>26</height>
     </rect>
@@ -4684,6 +4684,352 @@
    <property name="standardButtons">
     <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
    </property>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_11">
+   <property name="geometry">
+    <rect>
+     <x>-10</x>
+     <y>390</y>
+     <width>1211</width>
+     <height>56</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Cell Symmetry</string>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_11">
+    <item>
+     <widget class="QLabel" name="label_24">
+      <property name="text">
+       <string>point group</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QComboBox" name="pointGroup_cmbx">
+      <item>
+       <property name="text">
+        <string>-1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-3</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-3 r</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-31m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-3m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-3m r</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-3m1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-42m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-43m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-4m2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-6</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-62m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>-6m2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>112</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>112/m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>11m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>2/m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>222</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>23</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>2mm</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>3</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>3 r</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>312</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>31m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>32</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>32 r</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>321</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>3m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>3m r</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>3m1</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>4</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>4/m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>4/mmm</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>422</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>432</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>4mm</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>6</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>6/m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>6/mmm</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>622</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>6mm</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>m-3</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>m-3m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>m2m</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>mm2</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>mmm</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_25">
+      <property name="text">
+       <string>centering</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QComboBox" name="centering_cmbx">
+      <item>
+       <property name="text">
+        <string>P</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>I</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>A</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>B</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>C</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>F</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Robv</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Rrev</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item>
+     <spacer name="horizontalSpacer_11">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

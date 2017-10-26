@@ -5,6 +5,7 @@ from mpl_toolkits.mplot3d import proj3d
 import numpy as np
 from mantid.kernel import ConfigService
 from mantid.kernel import V3D
+from mantid.geometry import PointGroupFactory
 from mantid import config
 ConfigService.setConsoleLogLevel(2)
 config['Q.convention'] = 'Crystallography'
@@ -32,6 +33,8 @@ class MantidEV():
         self.abcMin = {abcMin}
         self.abcMax = {abcMax}
         self.tolerance = {tolerance}
+        self.pointGroup = "{pointGroup}"
+        self.centering = "{centering}"
         self.peakRadius = {peakRadius}
         self.minIntensity = {minIntensity}
         self.nGrid = {nGrid}
@@ -236,10 +239,17 @@ class MantidEV():
             self.instrument = self.peaks_ws.getInstrument()
          
             try:
-                FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = self.abcMin, MaxD = self.abcMax, Tolerance = self.tolerance )
+                FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = self.abcMin, MaxD = self.abcMax, Tolerance = self.tolerance)
                 SaveIsawUB(self.peaks_ws, self.outputDirectory+"/Peaks"+str(self.events)+".mat")
                 print "UB matrix: ", self.outputDirectory+"/Peaks"+str(self.events)+".mat"
-                self.numInd,errInd = IndexPeaks( PeaksWorkspace = self.peaks_ws, Tolerance = self.tolerance, RoundHKLs = False )
+                self.numInd,errInd = IndexPeaks( PeaksWorkspace = self.peaks_ws, Tolerance = self.tolerance, RoundHKLs = False)
+                try:
+                    pg = PointGroupFactory.createPointGroup(self.pointGroup)
+                    OptimizeLatticeForCellType(PeaksWorkspace=self.peaks_ws, CellType=str(pg.getLatticeSystem()), Apply=True, Tolerance=self.tolerance)
+                    SaveIsawUB(self.peaks_ws, self.outputDirectory+"/PeaksSym"+str(self.events)+".mat")
+                    print "UB matrix: ", self.outputDirectory+"/PeaksSym"+str(self.events)+".mat"
+                except:
+                    print "Point group symmetry failed"
                 if self.predictPeaks:
                     self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength, WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, OutputWorkspace="peaks")
             except:
@@ -481,8 +491,8 @@ class MantidEV():
             result = self.addOrientation(listoflists[i], i)
             peaks = CombinePeaksWorkspaces(peaks, result, OutputWorkspace='peaks'+current_process().name)
             AnalysisDataService.remove( result.getName() )
-        unique, completeness, redundancy, multiple = CountReflections(peaks, PointGroup='-1',
-                                                              LatticeCentering='P', MinDSpacing=self.minDSpacing,
+        unique, completeness, redundancy, multiple = CountReflections(peaks, PointGroup=self.pointGroup,
+                                                              LatticeCentering=self.centering, MinDSpacing=self.minDSpacing,
                                                               MissingReflectionsWorkspace='')
         return -unique
     
