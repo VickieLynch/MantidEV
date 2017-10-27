@@ -75,7 +75,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
 
     def setDefaults(self):
         self.instrument = "TOPAZ"
-        self.seconds = str(60)
+        self.seconds = str(180)
         self.phi =str( 0.0)
         self.chi =str( 135.0)
         self.omega =str( 0.0)
@@ -319,7 +319,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             self.format_template(templatePathRun, pathRun, **kw)
             print "Python script for running StartLiveData: ",pathRun
             os.system("/usr/bin/python "+str(pathRun))
-        quit()
+        self.close()
 
 def main():
     app = QtGui.QApplication(sys.argv)  # A new instance of QApplication

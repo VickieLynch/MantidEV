@@ -183,7 +183,7 @@ class MantidEV():
         self.z = np.array(self.z)
         self.c = np.array(self.c)
         self.c[self.c<=1] = 1.
-        self.s = np.ones([len(self.c)]) * 20
+        self.s = np.ones([len(self.c)]) * 10
         fig = plt.figure("ReciprocalSpace"+str(self.events),figsize = (self.screen_x, self.screen_y))
         ax = fig.gca(projection = '3d')
         vmin = min(self.c)
@@ -192,7 +192,8 @@ class MantidEV():
         logNorm = colors.LogNorm(vmin = vmin, vmax = vmax)
         se = ax.scatter(self.x, self.y, self.z, c = self.c, vmin = vmin, vmax = vmax, cmap = cm, norm = logNorm, s = self.s, alpha = 1.0, picker = True)
         ax.text2D(0.05, 0.90, "# Events = "+str(self.events) +
-                "\nHold mouse button to rotate." ,
+                "\nHold mouse button to rotate." +
+                "\nClose window to continue." ,
             fontsize = 20, transform = ax.transAxes)
         ax.set_xlabel('Q$_X$')
         ax.set_ylabel('Q$_Y$')
@@ -216,8 +217,8 @@ class MantidEV():
             self.text = []
             distance_threshold = 0.9 * 6.28 / float(self.abcMax)
             #End Input from GUI
-            bkg_inner_radius = self.peakRadius
-            bkg_outer_radius = self.peakRadius  * 1.25992105 # A factor of 2 ^ (1/3)
+            self.bkg_inner_radius = self.peakRadius
+            self.bkg_outer_radius = self.peakRadius  * 1.25992105 # A factor of 2 ^ (1/3)
             #Create peaks for all 3D grid point about minIntensity
             self.ws = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace="events")
             CopySample(InputWorkspace = self._md,OutputWorkspace = self.ws,CopyName = True,CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
@@ -258,9 +259,9 @@ class MantidEV():
 
             self.peaks_ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = self.peakRadius,
                               CoordinatesToUse = "Q (sample frame)",
-                                BackgroundOuterRadius = bkg_outer_radius,
-                              BackgroundInnerRadius = bkg_inner_radius,
-                                PeaksWorkspace = self.peaks_ws, OutputWorkspace="peaks")
+                              BackgroundOuterRadius = self.bkg_outer_radius,
+                              BackgroundInnerRadius = self.bkg_inner_radius,
+                              PeaksWorkspace = self.peaks_ws, OutputWorkspace="peaks")
             SaveIsawPeaks(self.peaks_ws, self.outputDirectory+"/Peaks"+str(self.events)+".integrate")
             print "Peaks file: ", self.outputDirectory+"/Peaks"+str(self.events)+".integrate"
     
@@ -324,7 +325,11 @@ class MantidEV():
                 IndexPeaks( PeaksWorkspace = self.ws, Tolerance = 1.0, RoundHKLs = False )
             except:
                 print "UB matrix not found"
-            npeaksTotal = self.ws.getNumberPeaks()
+            self.ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = self.peakRadius,
+                              CoordinatesToUse = "Q (sample frame)",
+                              BackgroundOuterRadius = self.bkg_outer_radius,
+                              BackgroundInnerRadius = self.bkg_inner_radius,
+                              PeaksWorkspace = self.ws, OutputWorkspace="events")
             self.ws = CombinePeaksWorkspaces(LHSWorkspace = self.ws, RHSWorkspace = self.peaks_ws, OutputWorkspace='events')
             npeaksTotal = self.ws.getNumberPeaks()
             for i in range(npeaksTotal):
@@ -370,8 +375,11 @@ class MantidEV():
                 "%\n# peaks indexed = "+str(self.numInd) + " out of " + str(self.npeaks) +
                 "\nLattice = " + " " + "{{:.2f}}".format(lattice.a()) + " " + "{{:.2f}}".format(lattice.b()) + " " + "{{:.2f}}".format(lattice.c()) + " " +
                 "{{:.2f}}".format(lattice.alpha()) + " " + "{{:.2f}}".format(lattice.beta()) + " " + "{{:.2f}}".format(lattice.gamma()) +
+                "\nError = " + " " + "{{:.2E}}".format(lattice.errora()) + " " + "{{:.2E}}".format(lattice.errorb()) + " " + "{{:.2E}}".format(lattice.errorc()) + " " +
+                "{{:.2E}}".format(lattice.erroralpha()) + " " + "{{:.2E}}".format(lattice.errorbeta()) + " " + "{{:.2E}}".format(lattice.errorgamma()) +
                 "\nClick on peak to see peak info." +
-                "\nHold mouse button to rotate." ,
+                "\nHold mouse button to rotate." +
+                "\nClose window to continue." ,
                 fontsize = 20, transform = self.axP.transAxes)
             self.axP.set_xlabel('Q$_X$')
             self.axP.set_ylabel('Q$_Y$')
@@ -406,7 +414,7 @@ class MantidEV():
                     self.x = np.append(self.x,qsample.X())
                     self.y = np.append(self.y,qsample.Y())
                     self.z = np.append(self.z,qsample.Z())
-                    self.s = np.append(self.s,20)
+                    self.s = np.append(self.s,40)
                     if peak.getSigmaIntensity() !=  0.0:
                         IsigI = peak.getIntensity()/peak.getSigmaIntensity()
                     else:
@@ -445,11 +453,13 @@ class MantidEV():
                 '\nUnique: {{0}}'.format(unique)+
                 '\nCompleteness: {{0}}%'.format(round(completeness * 100, 2))+
                 '\nRedundancy: {{0}}'.format(round(redundancy, 2))+
-                '\nMultiply observed: {{0}}%'.format(round(multiple*100, 2))+
+                '\nMeasured multiple times: {{0}}%'.format(round(multiple*100, 2))+
                 "\nLattice = " + " " + "{{:.2f}}".format(lattice.a()) + " " + "{{:.2f}}".format(lattice.b()) + " " + "{{:.2f}}".format(lattice.c()) + " " +
                 "{{:.2f}}".format(lattice.alpha()) + " " + "{{:.2f}}".format(lattice.beta()) + " " + "{{:.2f}}".format(lattice.gamma()) +
-                "\nClick on peak to see peak info." +
-                "\nHold mouse button to rotate." ,
+                "\nError = " + " " + "{{:.2E}}".format(lattice.errora()) + " " + "{{:.2E}}".format(lattice.errorb()) + " " + "{{:.2E}}".format(lattice.errorc()) + " " +
+                "{{:.2E}}".format(lattice.erroralpha()) + " " + "{{:.2E}}".format(lattice.errorbeta()) + " " + "{{:.2E}}".format(lattice.errorgamma()) +
+                "\nHold mouse button to rotate." +
+                "\nClose window to continue." ,
                 fontsize = 20, transform = self.axP.transAxes)
             self.axP.set_xlabel('Q$_X$')
             self.axP.set_ylabel('Q$_Y$')
@@ -578,19 +588,31 @@ class MantidEV():
         listoflists = zip(*[iter(x)]*2)
         result = self.addOrientation(listoflists[0], 0)
         self.ws = RenameWorkspace(InputWorkspace=result, OutputWorkspace='peaks'+current_process().name)
+        unique, completeness, redundancy, multiple = CountReflections(self.ws, PointGroup='-1',
+                                                          LatticeCentering='P', MinDSpacing=self.minDSpacing,
+                                                          MissingReflectionsWorkspace='')
+        print('      Completeness: {{0}}%'.format(round(completeness * 100, 2)))
+        count = []
+        complete = []
+        count.append(1)
+        complete.append(round(completeness * 100, 2))
         for i in range(1, len(listoflists)):
             result = self.addOrientation(listoflists[i], i)
             self.ws = CombinePeaksWorkspaces(self.ws, result, OutputWorkspace='peaks'+current_process().name)
             AnalysisDataService.remove( result.getName() )
-        unique, completeness, redundancy, multiple = CountReflections(self.ws, PointGroup='-1',
+            unique, completeness, redundancy, multiple = CountReflections(self.ws, PointGroup='-1',
                                                               LatticeCentering='P', MinDSpacing=self.minDSpacing,
                                                               MissingReflectionsWorkspace='')
-        print('             Peaks: {{0}}'.format(self.ws.getNumberPeaks()))
-        print('            Unique: {{0}}'.format(unique))
-        print('      Completeness: {{0}}%'.format(round(completeness * 100, 2)))
-        print('        Redundancy: {{0}}'.format(round(redundancy, 2)))
-        print(' Multiply observed: {{0}}%'.format(round(multiple*100, 2)))
+            print('      Completeness: {{0}}%'.format(round(completeness * 100, 2)))
+            count.append(i+1)
+            complete.append(round(completeness * 100, 2))
         self.plot_crystalplan(unique, completeness, redundancy, multiple)
+        plt.rcParams.update({{'font.size': 40}})
+        plt.figure("Completeness"+str(self.events),figsize = (self.screen_x, self.screen_y))
+        plt.plot(count, complete, 'ro')
+        plt.ylabel('Orientations')
+        plt.ylabel('Completeness (%)')
+        plt.show()
     
     
     def func(self, x):
