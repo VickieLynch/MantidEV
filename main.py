@@ -319,7 +319,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             self.format_template(templatePathRun, pathRun, **kw)
             print "Python script for running StartLiveData: ",pathRun
             os.system("/usr/bin/python "+str(pathRun))
-        self.close()
+        #self.close()
 
 def main():
     app = QtGui.QApplication(sys.argv)  # A new instance of QApplication

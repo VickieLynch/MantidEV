@@ -92,6 +92,13 @@ class MantidEV():
             self._md = output
 
     def crystalplan(self):
+        self.numAngles = 0
+        if self.changePhi:
+            self.numAngles += 1
+        if self.changeChi:
+            self.numAngles += 1
+        if self.changeOmega:
+            self.numAngles += 1
         CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self._wksp,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
         pool = ThreadPool(2)
         threadNo = range(2)
@@ -565,6 +572,7 @@ class MantidEV():
             ivar += 1
         if self.changeOmega:
             AddSampleLog(Workspace=self._wksp, LogName='omega', LogText=str(x[ivar]), LogType='Number')
+            ivar += 1
         SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
         peaks = PredictPeaks(InputWorkspace=self._wksp, WavelengthMin=self.minWavelength, 
             EdgePixels=self.edgePixels,
@@ -572,38 +580,42 @@ class MantidEV():
         return peaks
         
     def f(self, x): 
-        listoflists = zip(*[iter(x)]*2)
-        result = self.addOrientation(listoflists[0], 0)
-        peaks = RenameWorkspace(InputWorkspace=result, OutputWorkspace='peaks'+current_process().name)
-        for i in range(1, len(listoflists)):
+        listoflists = zip(*[iter(x)]*self.numAngles)
+        peaks = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace='peaks'+current_process().name)
+        CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = peaks,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
+        for i in range(len(listoflists)):
             result = self.addOrientation(listoflists[i], i)
             peaks = CombinePeaksWorkspaces(peaks, result, OutputWorkspace='peaks'+current_process().name)
             AnalysisDataService.remove( result.getName() )
-        unique, completeness, redundancy, multiple = CountReflections(peaks, PointGroup=self.pointGroup,
+        if self.useSymmetry:
+            unique, completeness, redundancy, multiple = CountReflections(peaks, PointGroup=self.pointGroup,
                                                               LatticeCentering=self.centering, MinDSpacing=self.minDSpacing,
                                                               MissingReflectionsWorkspace='')
+        else:
+            unique, completeness, redundancy, multiple = CountReflections(peaks, PointGroup='-1',
+                                                              LatticeCentering='P', MinDSpacing=self.minDSpacing,
+                                                              MissingReflectionsWorkspace='')
+        AnalysisDataService.remove( peaks.getName() )
         return -unique
     
     def fopt(self, x): 
-        listoflists = zip(*[iter(x)]*2)
-        result = self.addOrientation(listoflists[0], 0)
-        self.ws = RenameWorkspace(InputWorkspace=result, OutputWorkspace='peaks'+current_process().name)
-        unique, completeness, redundancy, multiple = CountReflections(self.ws, PointGroup='-1',
-                                                          LatticeCentering='P', MinDSpacing=self.minDSpacing,
-                                                          MissingReflectionsWorkspace='')
-        print('      Completeness: {{0}}%'.format(round(completeness * 100, 2)))
+        listoflists = zip(*[iter(x)]*self.numAngles)
         count = []
         complete = []
-        count.append(1)
-        complete.append(round(completeness * 100, 2))
-        for i in range(1, len(listoflists)):
+        self.ws = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace='peaks'+current_process().name)
+        CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self.ws,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
+        for i in range(len(listoflists)):
             result = self.addOrientation(listoflists[i], i)
             self.ws = CombinePeaksWorkspaces(self.ws, result, OutputWorkspace='peaks'+current_process().name)
             AnalysisDataService.remove( result.getName() )
-            unique, completeness, redundancy, multiple = CountReflections(self.ws, PointGroup='-1',
-                                                              LatticeCentering='P', MinDSpacing=self.minDSpacing,
-                                                              MissingReflectionsWorkspace='')
-            print('      Completeness: {{0}}%'.format(round(completeness * 100, 2)))
+            if self.useSymmetry:
+                unique, completeness, redundancy, multiple = CountReflections(self.ws, PointGroup=self.pointGroup,
+                                                                  LatticeCentering=self.centering, MinDSpacing=self.minDSpacing,
+                                                                  MissingReflectionsWorkspace='')
+            else:
+                unique, completeness, redundancy, multiple = CountReflections(self.ws, PointGroup='-1',
+                                                                  LatticeCentering='P', MinDSpacing=self.minDSpacing,
+                                                                  MissingReflectionsWorkspace='')
             count.append(i+1)
             complete.append(round(completeness * 100, 2))
         self.plot_crystalplan(unique, completeness, redundancy, multiple)
@@ -620,7 +632,7 @@ class MantidEV():
         """ Derivative of objective function """
         eps = 10
         dfdx = []
-        for i in range(2*self.numOrientations):
+        for i in range(self.numAngles*self.numOrientations):
             x2 = list(x)
             x2[i] = x[i]+eps
             dfdx.append(self.f(x2)-fx)
@@ -652,9 +664,9 @@ if __name__ == '__main__':  # if we're running file directly and not importing i
         test.plot_Q()
         test.plot_peaks()
         test.plot_Qpeaks()
+        if test.numOrientations > 0:
+            test.crystalplan()
     else:
         print "No events"
 
-    if test.numOrientations > 0:
-        test.crystalplan()
 
