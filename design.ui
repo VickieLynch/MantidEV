@@ -4321,7 +4321,7 @@
        <enum>Qt::RightToLeft</enum>
       </property>
       <property name="text">
-       <string>add to fixed orientations</string>
+       <string>add to first orientation</string>
       </property>
      </widget>
     </item>

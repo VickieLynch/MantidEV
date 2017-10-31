@@ -92,13 +92,18 @@ class MantidEV():
             self._md = output
 
     def crystalplan(self):
+        angles = self.peaks_ws.run().getGoniometer().getEulerAngles('YZY')
+        X0 = []
         self.numAngles = 0
         if self.changePhi:
             self.numAngles += 1
+            X0.append(angles[0])
         if self.changeChi:
             self.numAngles += 1
+            X0.append(angles[1])
         if self.changeOmega:
             self.numAngles += 1
+            X0.append(angles[2])
         CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self._wksp,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
         pool = ThreadPool(2)
         threadNo = range(2)
@@ -110,6 +115,8 @@ class MantidEV():
                 minPeaks = results[i].fun
         pool.close()
         pool.join()
+        if (self.addOrientations):
+            X = np.concatenate((X0, X))
         self.csv_write(X)
         self.fopt(X)
 
@@ -125,9 +132,19 @@ class MantidEV():
             writer = csv.writer(f, quotechar = "'")
             writer.writerow( ('#Title:','\"text\"'))
             writer.writerow( ('#Comment:',''))
-            writer.writerow( ('Phi', 'Omega', 'CountFor', 'CountValue', 'Comment') )
-            for i in range(10):
-                writer.writerow((X[2*i], X[2*i+1], 'pcharge', pcharge, comment))
+            if self.numAngles == 1:
+                writer.writerow( ('Phi', 'CountFor', 'CountValue', 'Comment') )
+            elif self.numAngles == 2:
+                writer.writerow( ('Phi', 'Omega', 'CountFor', 'CountValue', 'Comment') )
+            elif self.numAngles == 2:
+                writer.writerow( ('Phi','Chi', 'Omega', 'CountFor', 'CountValue', 'Comment') )
+            for i in range(len(X)/self.numAngles):
+                if self.numAngles == 1:
+                    writer.writerow((X[self.numAngles*i], 'pcharge', pcharge, comment))
+                elif self.numAngles == 2:
+                    writer.writerow((X[self.numAngles*i], X[self.numAngles*i+1], 'pcharge', pcharge, comment))
+                elif self.numAngles == 3:
+                    writer.writerow((X[self.numAngles*i], X[self.numAngles*i+1], X[self.numAngles*i+2], 'pcharge', pcharge, comment))
         finally:
             f.close()
 
@@ -253,12 +270,13 @@ class MantidEV():
                 self.numInd,errInd = IndexPeaks( PeaksWorkspace = self.peaks_ws, Tolerance = self.tolerance, RoundHKLs = False)
                 try:
                     pg = PointGroupFactory.createPointGroup(self.pointGroup)
-                    OptimizeLatticeForCellType(PeaksWorkspace=self.peaks_ws, CellType=str(pg.getLatticeSystem()), Apply=True, Tolerance=self.tolerance)
+                    self.numInd,errInd = SelectCellOfType( PeaksWorkspace=self.peaks_ws, CellType=str(pg.getLatticeSystem()), 
+                          Centering=self.centering, AllowPermutations=True, Apply=True, Tolerance=self.tolerance )
                     SaveIsawUB(self.peaks_ws, self.outputDirectory+"/PeaksSym"+str(self.events)+".mat")
                     print "UB matrix: ", self.outputDirectory+"/PeaksSym"+str(self.events)+".mat"
                 except:
                     print "Point group symmetry failed"
-                if self.predictPeaks:
+                if self.predictPeaks or self.addOrientations:
                     self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength, WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, OutputWorkspace="peaks")
             except:
                 self.numInd = 0
@@ -581,8 +599,11 @@ class MantidEV():
         
     def f(self, x): 
         listoflists = zip(*[iter(x)]*self.numAngles)
-        peaks = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace='peaks'+current_process().name)
-        CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = peaks,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
+        if (self.addOrientations):
+            peaks = self.peaks_ws
+        else:
+            peaks = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace='peaks'+current_process().name)
+            CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = peaks,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
         for i in range(len(listoflists)):
             result = self.addOrientation(listoflists[i], i)
             peaks = CombinePeaksWorkspaces(peaks, result, OutputWorkspace='peaks'+current_process().name)
@@ -602,8 +623,11 @@ class MantidEV():
         listoflists = zip(*[iter(x)]*self.numAngles)
         count = []
         complete = []
-        self.ws = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace='peaks'+current_process().name)
-        CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self.ws,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
+        if (self.addOrientations):
+            self.ws = self.peaks_ws
+        else:
+            self.ws = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace='peaks'+current_process().name)
+            CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self.ws,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
         for i in range(len(listoflists)):
             result = self.addOrientation(listoflists[i], i)
             self.ws = CombinePeaksWorkspaces(self.ws, result, OutputWorkspace='peaks'+current_process().name)

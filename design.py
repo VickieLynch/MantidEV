@@ -1737,7 +1737,7 @@ class Ui_MantidEV(object):
         self.changeChi_chbx.setText(_translate("MantidEV", "change chi", None))
         self.changeOmega_chbx.setText(_translate("MantidEV", "change omega", None))
         self.useSymmetry_chbx.setText(_translate("MantidEV", "use symmetry", None))
-        self.addOrientations_chbx.setText(_translate("MantidEV", "add to fixed orientations", None))
+        self.addOrientations_chbx.setText(_translate("MantidEV", "add to first orientation", None))
         self.groupBox_9.setTitle(_translate("MantidEV", "Output Directory", None))
         self.outputDirectory_ledt.setToolTip(_translate("MantidEV", "Select the Event Data file if not Live Data", None))
         self.outputDirectory_ledt.setText(_translate("MantidEV", ".", None))
