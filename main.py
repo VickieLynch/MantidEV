@@ -31,6 +31,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.minWavelength_ledt.editingFinished.connect(self.change_minWavelength)
         self.maxWavelength_ledt.editingFinished.connect(self.change_maxWavelength)
         self.pointGroup_cmbx.currentIndexChanged.connect(self.change_pointGroup)
+        self.laueGroup_cmbx.currentIndexChanged.connect(self.change_laueGroup)
         self.centering_cmbx.currentIndexChanged.connect(self.change_centering)
         self.sampleRadius_ledt.editingFinished.connect(self.change_sampleRadius)
         self.molecularFormula_ledt.editingFinished.connect(self.change_molecularFormula)
@@ -94,6 +95,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.abcMin =str( 3)
         self.abcMax =str( 11)
         self.tolerance =str( 0.15)
+        self.laueGroup = "Triclinic"
         self.pointGroup = "-1"
         self.centering = "P"
         self.peakRadius =str( 0.15)
@@ -112,11 +114,136 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
     def change_instrument(self):
         self.instrument = self.instrument_cmbx.currentText()
 
+    def change_laueGroup(self):
+        self.laueGroup = self.laueGroup_cmbx.currentText()
+        self.pointGroup_cmbx.clear()
+        list1 = []
+        if self.laueGroup == "Triclinic":
+            list1 = [
+                self.tr('-1'),
+                self.tr('1'),
+                ]
+        elif self.laueGroup == "Monoclinic":
+            list1 = [
+                self.tr('2/m'),
+                self.tr('2'),
+                self.tr('m'),
+                self.tr('112'),
+                self.tr('112/m'),
+                self.tr('11m'),
+                ]
+        elif self.laueGroup == "Orthorhombic":
+            list1 = [
+                self.tr('mmm'),
+                self.tr('222'),
+                self.tr('mm2'),
+                self.tr('2mm'),
+                self.tr('m2m'),
+                ]
+        elif self.laueGroup == "Tetragonal":
+            list1 = [
+                self.tr('4/m'),
+                self.tr('4/mmm'),
+                self.tr('-4'),
+                self.tr('-42m'),
+                self.tr('-4m2'),
+                self.tr('4'),
+                self.tr('422'),
+                self.tr('4mm'),
+                ]
+        elif self.laueGroup == "Trigonal - Rhombohedral":
+            list1 = [
+                self.tr('-3'),
+                self.tr('-3m'),
+                self.tr('3'),
+                self.tr('32'),
+                self.tr('3m'),
+                self.tr('-3 r'),
+                self.tr('-31m'),
+                self.tr('-3m r'),
+                self.tr('-3m1'),
+                self.tr('3 r'),
+                self.tr('312'),
+                self.tr('31m'),
+                self.tr('32 r'),
+                self.tr('321'),
+                self.tr('3m r'),
+                self.tr('3m1'),
+                ]
+        elif self.laueGroup == "Hexagonal":
+            list1 = [
+                self.tr('6/m'),
+                self.tr('6/mmm'),
+                self.tr('6'),
+                self.tr('-6'),
+                self.tr('622'),
+                self.tr('6mm'),
+                self.tr('-62m'),
+                self.tr('-6m2'),
+                ]
+        elif self.laueGroup == "Cubic":
+            list1 = [
+                self.tr('m-3'),
+                self.tr('m-3m'),
+                self.tr('23'),
+                self.tr('432'),
+                self.tr('-43m'),
+                ]
+        self.pointGroup_cmbx.addItems(list1)
+
+
     def change_pointGroup(self):
         self.pointGroup = self.pointGroup_cmbx.currentText()
 
     def change_centering(self):
         self.centering = self.centering_cmbx.currentText()
+        self.laueGroup_cmbx.clear()
+        list1 = []
+        if self.centering == "P":
+            list1 = [
+                self.tr('Triclinic'),
+                self.tr('Monoclinic'),
+                self.tr('Orthorhombic'),
+                self.tr('Tetragonal'),
+                self.tr('Trigonal - Rhombohedral'),
+                self.tr('Hexagonal'),
+                self.tr('Cubic'),
+                ]
+        elif self.centering == "I":
+            list1 = [
+                self.tr('Tetragonal'),
+                self.tr('Monoclinic'),
+                self.tr('Cubic'),
+                ]
+        elif self.centering == "A":
+            list1 = [
+                self.tr('Monoclinic'),
+                self.tr('Orthorhombic'),
+                ]
+        elif self.centering == "B":
+            list1 = [
+                self.tr('Monoclinic'),
+                self.tr('Orthorhombic'),
+                ]
+        elif self.centering == "C":
+            list1 = [
+                self.tr('Monoclinic'),
+                self.tr('Orthorhombic'),
+                ]
+        elif self.centering == "F":
+            list1 = [
+                self.tr('Orthorhombic'),
+                self.tr('Cubic'),
+                ]
+        elif self.centering == "Robv":
+            list1 = [
+                self.tr('Trigonal - Rhombohedral'),
+                ]
+        elif self.centering == "Rrev":
+            list1 = [
+                self.tr('Trigonal - Rhombohedral'),
+                ]
+        self.laueGroup_cmbx.addItems(list1)
 
     def change_seconds(self):
         temp = self.seconds_ledt.text()

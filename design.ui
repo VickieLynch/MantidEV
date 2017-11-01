@@ -2433,7 +2433,7 @@
        <string/>
       </property>
       <property name="text">
-       <string></string>
+       <string/>
       </property>
       <property name="maxLength">
        <number>32767</number>
@@ -2445,7 +2445,7 @@
        <enum>QLineEdit::Normal</enum>
       </property>
       <property name="cursorPosition">
-       <number>3</number>
+       <number>0</number>
       </property>
       <property name="modified">
        <bool>false</bool>
@@ -2586,7 +2586,7 @@
        <string/>
       </property>
       <property name="text">
-       <string></string>
+       <string/>
       </property>
       <property name="maxLength">
        <number>32767</number>
@@ -2598,7 +2598,7 @@
        <enum>QLineEdit::Normal</enum>
       </property>
       <property name="cursorPosition">
-       <number>1</number>
+       <number>0</number>
       </property>
       <property name="modified">
        <bool>false</bool>
@@ -2739,7 +2739,7 @@
        <string/>
       </property>
       <property name="text">
-       <string></string>
+       <string/>
       </property>
       <property name="maxLength">
        <number>32767</number>
@@ -2751,7 +2751,7 @@
        <enum>QLineEdit::Normal</enum>
       </property>
       <property name="cursorPosition">
-       <number>6</number>
+       <number>0</number>
       </property>
       <property name="modified">
        <bool>false</bool>
@@ -4699,7 +4699,110 @@
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_11">
     <item>
+     <widget class="QLabel" name="label_25">
+      <property name="text">
+       <string>centering</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QComboBox" name="centering_cmbx">
+      <item>
+       <property name="text">
+        <string>P</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>I</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>A</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>B</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>C</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>F</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Robv</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Rrev</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item>
      <widget class="QLabel" name="label_24">
+      <property name="text">
+       <string>laue group</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QComboBox" name="laueGroup_cmbx">
+      <item>
+       <property name="text">
+        <string>Triclinic</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Monoclinic</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Orthorhombic</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Tetragonal</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Trigonal - Rhombohedral</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Hexagonal</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Cubic</string>
+       </property>
+      </item>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="label_26">
       <property name="text">
        <string>point group</string>
       </property>
@@ -4958,60 +5061,6 @@
       <item>
        <property name="text">
         <string>mmm</string>
-       </property>
-      </item>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLabel" name="label_25">
-      <property name="text">
-       <string>centering</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QComboBox" name="centering_cmbx">
-      <item>
-       <property name="text">
-        <string>P</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>I</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>A</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>B</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>C</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>F</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Robv</string>
-       </property>
-      </item>
-      <item>
-       <property name="text">
-        <string>Rrev</string>
        </property>
       </item>
      </widget>
