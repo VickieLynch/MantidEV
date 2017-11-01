@@ -2314,12 +2314,12 @@
     <item>
      <widget class="QLabel" name="label_16">
       <property name="text">
-       <string>linear scattering coeff</string>
+       <string>molecular formula</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="linScatt_ledt">
+     <widget class="QLineEdit" name="molecularFormula_ledt">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -2331,7 +2331,7 @@
       </property>
       <property name="minimumSize">
        <size>
-        <width>0</width>
+        <width>300</width>
         <height>0</height>
        </size>
       </property>
@@ -2397,7 +2397,7 @@
        <bool>false</bool>
       </property>
       <property name="toolTip">
-       <string>Total scattering linear absorption coefficent in units of cm^-1 </string>
+       <string>Here are sample inputs of molecular formulas:/nFor example, for oxalic acid dihydrate, C2O4H2.2H2O, or C2O6H6, input C2 O4 H2 H4 O2    or    C2 O6 H6 /nFor deuterated oxalic acid dihydrate, input C2 O6 D6   or   C2 O6 2H6  /nFor La2NiO4.2, input La2 Ni1 O4.2 /nFor boron-11 B4C, input 11B4 C1</string>
       </property>
       <property name="statusTip">
        <string/>
@@ -2433,7 +2433,7 @@
        <string/>
       </property>
       <property name="text">
-       <string>0</string>
+       <string></string>
       </property>
       <property name="maxLength">
        <number>32767</number>
@@ -2445,7 +2445,7 @@
        <enum>QLineEdit::Normal</enum>
       </property>
       <property name="cursorPosition">
-       <number>1</number>
+       <number>3</number>
       </property>
       <property name="modified">
        <bool>false</bool>
@@ -2467,12 +2467,12 @@
     <item>
      <widget class="QLabel" name="label_15">
       <property name="text">
-       <string>linear absorption coeff</string>
+       <string>Z</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="linAbs_ledt">
+     <widget class="QLineEdit" name="Z_ledt">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -2550,7 +2550,7 @@
        <bool>false</bool>
       </property>
       <property name="toolTip">
-       <string>True absorption linear absorption coefficent at 1.8 A in units of cm^-1</string>
+       <string>The number of formula units in the unit cell. This can be a noninteger value.</string>
       </property>
       <property name="statusTip">
        <string/>
@@ -2586,7 +2586,7 @@
        <string/>
       </property>
       <property name="text">
-       <string>0</string>
+       <string></string>
       </property>
       <property name="maxLength">
        <number>32767</number>
@@ -2620,12 +2620,12 @@
     <item>
      <widget class="QLabel" name="label_14">
       <property name="text">
-       <string>power of wavelength</string>
+       <string>unit cell volume</string>
       </property>
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="powerWavelength_ledt">
+     <widget class="QLineEdit" name="unitCellVolume_ledt">
       <property name="enabled">
        <bool>true</bool>
       </property>
@@ -2703,7 +2703,7 @@
        <bool>false</bool>
       </property>
       <property name="toolTip">
-       <string>Power of wavelength for Lorentz correction</string>
+       <string>The unit cell volume in units of Angstroms cubed.</string>
       </property>
       <property name="statusTip">
        <string/>
@@ -2739,7 +2739,7 @@
        <string/>
       </property>
       <property name="text">
-       <string>4</string>
+       <string></string>
       </property>
       <property name="maxLength">
        <number>32767</number>
@@ -2751,7 +2751,7 @@
        <enum>QLineEdit::Normal</enum>
       </property>
       <property name="cursorPosition">
-       <number>1</number>
+       <number>6</number>
       </property>
       <property name="modified">
        <bool>false</bool>

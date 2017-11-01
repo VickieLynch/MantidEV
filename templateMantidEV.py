@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from lin_abs_coef import lin_abs_coef
 from matplotlib import colors
 from matplotlib.ticker import LogFormatter
 from mpl_toolkits.mplot3d import proj3d
@@ -24,9 +25,9 @@ class MantidEV():
         self.minWavelength = {minWavelength}
         self.maxWavelength = {maxWavelength}
         self.sampleRadius = {sampleRadius}
-        self.linSca = {linSca}
-        self.linAbs = {linAbs}
-        self.powerL = {powerL}
+        self.molecularFormula = "{molecularFormula}"
+        self.Z = {Z}
+        self.unitCellVolume = {unitCellVolume}
         self.minQ = {minQ}
         self.maxQ = {maxQ}
         self.numPeaksToFind = {numPeaksToFind}
@@ -78,10 +79,11 @@ class MantidEV():
             pass
 
         if self.sampleRadius > 0:
-            self._wksp = AnvredCorrection(InputWorkspace = self._wksp,LinearScatteringCoef = self.linSca,LinearAbsorptionCoef = self.linAbs,
-                Radius = self.sampleRadius,PowerLambda = self.powerL,OutputWorkspace="events")
-            if self.powerL > 1.0:
-                self.LorentzCorr = False
+            linSca, linAbs, calculatedRadius = lin_abs_coef(self.molecularFormula, self.Z, self.unitCellVolume, 0)
+            self._wksp = AnvredCorrection(InputWorkspace = self._wksp,LinearScatteringCoef = linSca,LinearAbsorptionCoef = linAbs,
+                Radius = self.sampleRadius,PowerLambda = 4.0,OutputWorkspace="eventWksp")
+            # Lorentz correction already added so not in ConvertToMD
+            self.LorentzCorr = False
 
         if self._wksp:
             output = ConvertToMD(InputWorkspace = self._wksp, QDimensions = 'Q3D', dEAnalysisMode = 'Elastic',
@@ -104,7 +106,6 @@ class MantidEV():
         if self.changeOmega:
             self.numAngles += 1
             X0.append(angles[2])
-        CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self._wksp,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
         pool = ThreadPool(2)
         threadNo = range(2)
         results = pool.map(self.optimize, threadNo)
@@ -243,10 +244,10 @@ class MantidEV():
             #End Input from GUI
             self.bkg_inner_radius = self.peakRadius
             self.bkg_outer_radius = self.peakRadius  * 1.25992105 # A factor of 2 ^ (1/3)
+            R=self._wksp.run().getGoniometer().getR()
             #Create peaks for all 3D grid point about minIntensity
             self.ws = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace="events")
             CopySample(InputWorkspace = self._md,OutputWorkspace = self.ws,CopyName = True,CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
-            R=self._wksp.run().getGoniometer().getR()
         
             for i in range(len(self.x)):
 #                try:
@@ -262,6 +263,7 @@ class MantidEV():
             self.peaks_ws = FindPeaksMD( self._md, MaxPeaks = self.numPeaksToFind, OutputWorkspace="peaks",
                                     PeakDistanceThreshold = distance_threshold )
             self.instrument = self.peaks_ws.getInstrument()
+            self.npeaks = self.peaks_ws.getNumberPeaks()
          
             try:
                 FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = self.abcMin, MaxD = self.abcMax, Tolerance = self.tolerance)
@@ -278,6 +280,7 @@ class MantidEV():
                     print "Point group symmetry failed"
                 if self.predictPeaks or self.addOrientations:
                     self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength, WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, OutputWorkspace="peaks")
+                CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self._wksp,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
             except:
                 self.numInd = 0
                 print "UB matrix not found"
@@ -290,14 +293,15 @@ class MantidEV():
             SaveIsawPeaks(self.peaks_ws, self.outputDirectory+"/Peaks"+str(self.events)+".integrate")
             print "Peaks file: ", self.outputDirectory+"/Peaks"+str(self.events)+".integrate"
     
-            self.npeaks = self.peaks_ws.getNumberPeaks()
+            # this is number of predicted peaks if that option is selected
+            nPeaks = self.peaks_ws.getNumberPeaks()
             self.sumIsigI = 0.0
             self.sumIsigI2 = 0.0
             self.sumIsigI5 = 0.0
             figS, axs = plt.subplots(10, 10, sharex=False, sharey=False, figsize=(self.screen_x, self.screen_y))
             figS.canvas.set_window_title('Peaks'+str(self.events))
             axs = axs.flatten()
-            for i in range(self.npeaks):
+            for i in range(nPeaks):
                 j = i%len(axs)
                 peak = self.peaks_ws.getPeak(i)
                 hkl = str(int(peak.getH()+0.5))+','+str(int(peak.getK()+0.5))+','+str(int(peak.getL()+0.5))
@@ -330,7 +334,7 @@ class MantidEV():
                 pcm=self.Plot2DMD(axs[j],sl2d, hkl, NumEvNorm=False)
                 figS.colorbar(pcm,ax=axs[j])
 #                plt.tight_layout(pad = 1.0, w_pad=2.0, h_pad=10.0)
-                if j == len(axs)-1 and i < self.npeaks-1:
+                if j == len(axs)-1 and i < nPeaks-1:
                     plt.show()
                     figS, axs = plt.subplots(10, 10, sharex=False, sharey=False, figsize=(self.screen_x, self.screen_y))
                     figS.canvas.set_window_title('Peaks'+str(self.events))
@@ -339,9 +343,9 @@ class MantidEV():
             for k in range(j+1,len(axs)):
                 axs[k].axis('off')
             plt.show()
-            self.sumIsigI /=  self.npeaks/100.0
-            self.sumIsigI5 /=  self.npeaks/100.0
-            self.sumIsigI2 /=  self.npeaks/100.0
+            self.sumIsigI /=  nPeaks/100.0
+            self.sumIsigI5 /=  nPeaks/100.0
+            self.sumIsigI2 /=  nPeaks/100.0
     
     def plot_Qpeaks(self):
             plt.rcParams.update({{'font.size': 10}})

@@ -33,9 +33,9 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.pointGroup_cmbx.currentIndexChanged.connect(self.change_pointGroup)
         self.centering_cmbx.currentIndexChanged.connect(self.change_centering)
         self.sampleRadius_ledt.editingFinished.connect(self.change_sampleRadius)
-        self.linScatt_ledt.editingFinished.connect(self.change_linScatt)
-        self.linAbs_ledt.editingFinished.connect(self.change_linAbs)
-        self.powerWavelength_ledt.editingFinished.connect(self.change_powerWavelength)
+        self.molecularFormula_ledt.editingFinished.connect(self.change_molecularFormula)
+        self.Z_ledt.editingFinished.connect(self.change_Z)
+        self.unitCellVolume_ledt.editingFinished.connect(self.change_unitCellVolume)
         self.minQspace_ledt.editingFinished.connect(self.change_minQ)
         self.maxQspace_ledt.editingFinished.connect(self.change_maxQ)
         self.numberPeaks_ledt.editingFinished.connect(self.change_numPeaks)
@@ -85,9 +85,9 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.minWavelength =str( 0.5)
         self.maxWavelength =str( 3.5)
         self.sampleRadius =str( 0.0)
-        self.linSca =str( 0.0)
-        self.linAbs =str( 0.0)
-        self.powerL =str( 4.0)
+        self.molecularFormula = ""
+        self.Z =str( 0)
+        self.unitCellVolume =str( 0)
         self.minQ=str(-20)
         self.maxQ=str(20)
         self.numPeaksToFind =str( 50)
@@ -167,14 +167,14 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
     def change_sampleRadius(self):
         self.sampleRadius = self.toDouble(self.sampleRadius_ledt.text())
 
-    def change_linScatt(self):
-        self.linScatt = self.toDouble(self.linScatt_ledt.text())
+    def change_molecularFormula(self):
+        self.molecularFormula = self.molecularFormula_ledt.text()
 
-    def change_linAbs(self):
-        self.linAbs = self.toDouble(self.linAbs_ledt.text())
+    def change_Z(self):
+        self.Z = self.toDouble(self.Z_ledt.text())
 
-    def change_powerWavelength(self):
-        self.powerL = self.toDouble(self.powerWavelength_ledt.text())
+    def change_unitCellVolume(self):
+        self.unitCellVolume = self.toDouble(self.unitCellVolume_ledt.text())
 
     def change_minQ(self):
         self.minQ = self.toDouble(self.minQspace_ledt.text())
@@ -275,9 +275,9 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             "minWavelength": self.minWavelength,
             "maxWavelength": self.maxWavelength,
             "sampleRadius": self.sampleRadius,
-            "linSca": self.linSca,
-            "linAbs": self.linAbs,
-            "powerL": self.powerL,
+            "molecularFormula": self.molecularFormula,
+            "Z": self.Z,
+            "unitCellVolume": self.unitCellVolume,
             "minQ": self.minQ,
             "maxQ": self.maxQ,
             "numPeaksToFind": self.numPeaksToFind,
