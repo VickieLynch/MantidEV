@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from PyQt4 import QtGui, QtCore  # Import the PyQt4 module we'll need
 import sys  # We need sys so that we can pass argv to QApplication
-
+from subprocess import PIPE, Popen
 import design  # This file holds our MainWindow and all design related things
 
 # it also keeps events etc that we defined in Qt Designer
@@ -385,7 +385,8 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.edgePixels = int(temp)
 
     def reject(self):
-        quit()
+        print "script has been killed"
+        self.proc.kill()
         
     def accept(self):
         #Generate MantidEV.py file 
@@ -436,7 +437,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             self.line_prepender(path, 'sys.path.append("/opt/mantidnightly/bin")')
             self.line_prepender(path, 'import sys')
             print "Python script for NeXus file: ",path
-            os.system("/usr/bin/python "+str(path))
+            self.proc = Popen("/usr/bin/python "+str(path), shell=True, stdout=PIPE)
         else:
             path = self.outputDirectory+"/MantidEV.py"
             pathRun = self.outputDirectory+"/runMantidEV.py"
@@ -445,7 +446,14 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             print "PostProcessingScriptFilename for StartLiveData: ",path
             self.format_template(templatePathRun, pathRun, **kw)
             print "Python script for running StartLiveData: ",pathRun
-            os.system("/usr/bin/python "+str(pathRun))
+            self.proc = Popen("/usr/bin/python "+str(pathRun), shell=True, stdout=PIPE)
+        while True:
+            output = self.proc.stdout.readline()
+            if output == '' and self.proc.poll() is not None:
+                break
+            if output:
+                self.outputText.append(output.strip())
+               
         #self.close()
 
 def main():

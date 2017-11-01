@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'design.ui'
 #
-# Created: Wed Nov  1 11:57:48 2017
+# Created: Wed Nov  1 14:57:33 2017
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -26,7 +26,7 @@ except AttributeError:
 class Ui_MantidEV(object):
     def setupUi(self, MantidEV):
         MantidEV.setObjectName(_fromUtf8("MantidEV"))
-        MantidEV.resize(1196, 803)
+        MantidEV.resize(1241, 1008)
         self.groupBox = QtGui.QGroupBox(MantidEV)
         self.groupBox.setGeometry(QtCore.QRect(-10, 10, 1211, 56))
         self.groupBox.setObjectName(_fromUtf8("groupBox"))
@@ -1559,7 +1559,7 @@ class Ui_MantidEV(object):
         spacerItem9 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_9.addItem(spacerItem9)
         self.buttonBox = QtGui.QDialogButtonBox(MantidEV)
-        self.buttonBox.setGeometry(QtCore.QRect(530, 720, 160, 26))
+        self.buttonBox.setGeometry(QtCore.QRect(520, 970, 160, 26))
         self.buttonBox.setOrientation(QtCore.Qt.Horizontal)
         self.buttonBox.setStandardButtons(QtGui.QDialogButtonBox.Cancel|QtGui.QDialogButtonBox.Ok)
         self.buttonBox.setObjectName(_fromUtf8("buttonBox"))
@@ -1656,6 +1656,9 @@ class Ui_MantidEV(object):
         self.horizontalLayout_11.addWidget(self.pointGroup_cmbx)
         spacerItem10 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout_11.addItem(spacerItem10)
+        self.outputText = QtGui.QTextEdit(MantidEV)
+        self.outputText.setGeometry(QtCore.QRect(0, 710, 1241, 251))
+        self.outputText.setObjectName(_fromUtf8("outputText"))
 
         self.retranslateUi(MantidEV)
         QtCore.QObject.connect(self.buttonBox, QtCore.SIGNAL(_fromUtf8("accepted()")), MantidEV.accept)

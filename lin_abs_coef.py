@@ -5,7 +5,6 @@ def lin_abs_coef(formulaString, zParameter, unitCellVolume, weight):
     numberOfIsotopes = len(formulaList)     # the number of elements or isotopes in the formula        
     calcRadius = True
     XsecDirectory = "/SNS/software/ISAW/Databases/"
-    XsecDirectory = "./"
     
     sumScatXs = 0.0
     sumAbsXs = 0.0
