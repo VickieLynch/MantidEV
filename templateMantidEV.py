@@ -191,24 +191,22 @@ class MantidEV():
                  AlignedDim0 = 'Q_sample_x,'+str(self.minQ)+','+str(self.maxQ)+','+str(self.nGrid),
                  AlignedDim1 = 'Q_sample_y,'+str(self.minQ)+','+str(self.maxQ)+','+str(self.nGrid),
                  AlignedDim2 = 'Q_sample_z,'+str(self.minQ)+','+str(self.maxQ)+','+str(self.nGrid))
-        qp = np.linspace(self.minQ,self.maxQ,self.nGrid)
-        g = self.meshgrid2(qp, qp, qp)
-        positions = np.vstack(map(np.ravel, g))
-        self.x,self.y,self.z = np.split(positions, 3)
-        self.x = np.hstack(self.x)
-        self.y = np.hstack(self.y)
-        self.z = np.hstack(self.z)
-        self.c = Box.getSignalArray()
-        self.c = self.c.flatten()
-        data = zip(self.c,self.x,self.y,self.z)
-        data = [i for i in data if i[0] >= self.minIntensity]
-        self.c,self.x,self.y,self.z = zip(*data)
-        self.x = np.array(self.x)
-        self.y = np.array(self.y)
-        self.z = np.array(self.z)
-        self.c = np.array(self.c)
-        self.c[self.c<=1] = 1.
-        self.s = np.ones([len(self.c)]) * 10
+        signal = Box.getSignalArray()
+        step = float(self.maxQ-self.minQ)/(self.nGrid-1)
+        self.c = []
+        self.x = []
+        self.y = []
+        self.z = []
+        self.s = []
+        for Hj in range(self.nGrid):
+            for Kj in range(self.nGrid):
+                for Lj in range(self.nGrid):
+                    if signal[Lj,Kj,Hj] >= self.minIntensity:
+                        self.c.append(signal[Lj,Kj,Hj])
+                        self.x.append(self.minQ+step*Lj)
+                        self.y.append(self.minQ+step*Kj)
+                        self.z.append(self.minQ+step*Hj)
+                        self.s.append(10)
         fig = plt.figure("ReciprocalSpace"+str(self.events),figsize = (self.screen_x, self.screen_y))
         ax = fig.gca(projection = '3d')
         vmin = min(self.c)
