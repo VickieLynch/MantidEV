@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'design.ui'
 #
-# Created: Wed Nov  1 14:57:33 2017
+# Created: Thu Nov  2 09:40:30 2017
 #      by: PyQt4 UI code generator 4.10.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -1338,7 +1338,7 @@ class Ui_MantidEV(object):
         sizePolicy.setHeightForWidth(self.numOrientations_ledt.sizePolicy().hasHeightForWidth())
         self.numOrientations_ledt.setSizePolicy(sizePolicy)
         self.numOrientations_ledt.setMinimumSize(QtCore.QSize(0, 0))
-        self.numOrientations_ledt.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.numOrientations_ledt.setMaximumSize(QtCore.QSize(40, 16777215))
         self.numOrientations_ledt.setSizeIncrement(QtCore.QSize(0, 0))
         self.numOrientations_ledt.setBaseSize(QtCore.QSize(0, 0))
         palette = QtGui.QPalette()
@@ -1378,6 +1378,12 @@ class Ui_MantidEV(object):
         self.numOrientations_ledt.setCursorMoveStyle(QtCore.Qt.LogicalMoveStyle)
         self.numOrientations_ledt.setObjectName(_fromUtf8("numOrientations_ledt"))
         self.horizontalLayout_10.addWidget(self.numOrientations_ledt)
+        self.label_27 = QtGui.QLabel(self.groupBox_10)
+        self.label_27.setObjectName(_fromUtf8("label_27"))
+        self.horizontalLayout_10.addWidget(self.label_27)
+        self.pcharge_ledt = QtGui.QLineEdit(self.groupBox_10)
+        self.pcharge_ledt.setObjectName(_fromUtf8("pcharge_ledt"))
+        self.horizontalLayout_10.addWidget(self.pcharge_ledt)
         self.label_6 = QtGui.QLabel(self.groupBox_10)
         self.label_6.setObjectName(_fromUtf8("label_6"))
         self.horizontalLayout_10.addWidget(self.label_6)
@@ -1389,7 +1395,7 @@ class Ui_MantidEV(object):
         sizePolicy.setHeightForWidth(self.edgePixels_ledt.sizePolicy().hasHeightForWidth())
         self.edgePixels_ledt.setSizePolicy(sizePolicy)
         self.edgePixels_ledt.setMinimumSize(QtCore.QSize(0, 0))
-        self.edgePixels_ledt.setMaximumSize(QtCore.QSize(16777215, 16777215))
+        self.edgePixels_ledt.setMaximumSize(QtCore.QSize(40, 16777215))
         self.edgePixels_ledt.setSizeIncrement(QtCore.QSize(0, 0))
         self.edgePixels_ledt.setBaseSize(QtCore.QSize(0, 0))
         palette = QtGui.QPalette()
@@ -1708,7 +1714,7 @@ class Ui_MantidEV(object):
         self.label_18.setText(_translate("MantidEV", "maximum Q", None))
         self.maxQspace_ledt.setToolTip(_translate("MantidEV", "Maximum Qx, Qy, Qz", None))
         self.maxQspace_ledt.setText(_translate("MantidEV", "20", None))
-        self.groupBox_5.setTitle(_translate("MantidEV", "Corrections", None))
+        self.groupBox_5.setTitle(_translate("MantidEV", "Absorption Correction", None))
         self.label_17.setText(_translate("MantidEV", "sample radius", None))
         self.sampleRadius_ledt.setToolTip(_translate("MantidEV", "Positve value of sample radius (cm) for absorption correction", None))
         self.sampleRadius_ledt.setText(_translate("MantidEV", "0", None))
@@ -1747,6 +1753,8 @@ class Ui_MantidEV(object):
         self.label_7.setText(_translate("MantidEV", "number orientations", None))
         self.numOrientations_ledt.setToolTip(_translate("MantidEV", "Minimum intensity for plotting in reciprocal space", None))
         self.numOrientations_ledt.setText(_translate("MantidEV", "0", None))
+        self.label_27.setText(_translate("MantidEV", "pcharge", None))
+        self.pcharge_ledt.setText(_translate("MantidEV", "1.76e+13", None))
         self.label_6.setText(_translate("MantidEV", "number edge pixels", None))
         self.edgePixels_ledt.setToolTip(_translate("MantidEV", "Number of edge pixels which will not have peaks predicted", None))
         self.edgePixels_ledt.setText(_translate("MantidEV", "20", None))

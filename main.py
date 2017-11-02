@@ -48,6 +48,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.numberGridPoints_ledt.editingFinished.connect(self.change_numberGridPoints)
         self.predictPeaks_chbx.stateChanged.connect(self.predict_peaks)  # When the button is pressed
         self.numOrientations_ledt.editingFinished.connect(self.change_numOrientations)
+        self.pcharge_ledt.editingFinished.connect(self.change_pcharge)
         self.edgePixels_ledt.editingFinished.connect(self.change_edgePixels)
         self.changePhi_chbx.stateChanged.connect(self.change_phi)  # When the button is pressed
         self.changeChi_chbx.stateChanged.connect(self.change_chi)  # When the button is pressed
@@ -103,6 +104,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.nGrid=str(410)
         self.predictPeaks =str(0)
         self.numOrientations=str(0)
+        self.pcharge=str(1.76e+13)
         self.edgePixels=str(20)
         self.changePhi=str(1)
         self.changeChi=str(0)
@@ -384,6 +386,10 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         temp = self.edgePixels_ledt.text()
         self.edgePixels = int(temp)
 
+    def change_pcharge(self):
+        temp = self.pcharge_ledt.text()
+        self.pcharge = int(temp)
+
     def reject(self):
         print "script has been killed"
         self.proc.kill()
@@ -419,6 +425,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             "nGrid": self.nGrid,
             "predictPeaks": self.predictPeaks,
             "numOrientations": self.numOrientations,
+            "pcharge": self.pcharge,
             "edgePixels": self.edgePixels,
             "changePhi": self.changePhi,
             "changeChi": self.changeChi,
@@ -437,7 +444,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             self.line_prepender(path, 'sys.path.append("/opt/mantidnightly/bin")')
             self.line_prepender(path, 'import sys')
             print "Python script for NeXus file: ",path
-            self.proc = Popen("/usr/bin/python "+str(path), shell=True, stdout=PIPE)
+            self.proc = Popen(['/usr/bin/python', str(path)], stdout=PIPE)
         else:
             path = self.outputDirectory+"/MantidEV.py"
             pathRun = self.outputDirectory+"/runMantidEV.py"
@@ -446,15 +453,14 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             print "PostProcessingScriptFilename for StartLiveData: ",path
             self.format_template(templatePathRun, pathRun, **kw)
             print "Python script for running StartLiveData: ",pathRun
-            self.proc = Popen("/usr/bin/python "+str(pathRun), shell=True, stdout=PIPE)
+            self.proc = Popen(['/usr/bin/python', str(path)], stdout=PIPE)
         while True:
             output = self.proc.stdout.readline()
             if output == '' and self.proc.poll() is not None:
                 break
             if output:
                 self.outputText.append(output.strip())
-               
-        #self.close()
+                QtGui.QApplication.processEvents()
 
 def main():
     app = QtGui.QApplication(sys.argv)  # A new instance of QApplication

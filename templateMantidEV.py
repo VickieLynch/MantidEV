@@ -43,6 +43,7 @@ class MantidEV():
         self.outputDirectory = "{outputDirectory}"
         self.LorentzCorr = True
         self.numOrientations = {numOrientations}
+        self.pcharge = {pcharge}
         self.edgePixels = {edgePixels}
         self.changePhi = {changePhi}
         self.changeChi = {changeChi}
@@ -127,8 +128,8 @@ class MantidEV():
         fileName = self.outputDirectory+"/CrystalPlan"+str(self.events)+".csv"
         print "Goniometer plan: ", fileName
         f = open(fileName, 'wt')
-        pcharge = str(1.76e+13)
-        comment = '\"text\"'
+        comment0 = '\"measured\"'
+        commentn = '\"optimized\"'
         try:
             writer = csv.writer(f, quotechar = "'")
             writer.writerow( ('#Title:','\"text\"'))
@@ -140,12 +141,16 @@ class MantidEV():
             elif self.numAngles == 2:
                 writer.writerow( ('Phi','Chi', 'Omega', 'CountFor', 'CountValue', 'Comment') )
             for i in range(len(X)/self.numAngles):
+                if i == 0 and self.addOrientations:
+                   comment = comment0
+                else:
+                   comment = commentn
                 if self.numAngles == 1:
-                    writer.writerow((X[self.numAngles*i], 'pcharge', pcharge, comment))
+                    writer.writerow((X[self.numAngles*i], 'pcharge', self.pcharge, comment))
                 elif self.numAngles == 2:
-                    writer.writerow((X[self.numAngles*i], X[self.numAngles*i+1], 'pcharge', pcharge, comment))
+                    writer.writerow((X[self.numAngles*i], X[self.numAngles*i+1], 'pcharge', self.pcharge, comment))
                 elif self.numAngles == 3:
-                    writer.writerow((X[self.numAngles*i], X[self.numAngles*i+1], X[self.numAngles*i+2], 'pcharge', pcharge, comment))
+                    writer.writerow((X[self.numAngles*i], X[self.numAngles*i+1], X[self.numAngles*i+2], 'pcharge', self.pcharge, comment))
         finally:
             f.close()
 
@@ -163,7 +168,7 @@ class MantidEV():
         mytakestep = RandomDisplacementBounds(0.0, 360.0)
         
         # use method
-        minimizer_kwargs = dict(method="Nelder-Mead", options={{'disp': True, 'ftol':1.00, 'maxiter':3, 'maxfev':15}})
+        minimizer_kwargs = dict(method="Nelder-Mead", options={{'disp': False, 'ftol':1.00, 'maxiter':3, 'maxfev':15}})
         result = basinhopping(self.f, x0, niter=1, minimizer_kwargs=minimizer_kwargs, take_step=mytakestep)
         return result
 
@@ -277,7 +282,9 @@ class MantidEV():
                 except:
                     print "Point group symmetry failed"
                 if self.predictPeaks or self.addOrientations:
-                    self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength, WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, OutputWorkspace="peaks")
+                    self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength,
+                         EdgePixels=self.edgePixels,
+                         WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, OutputWorkspace="peaks")
                 CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self._wksp,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
             except:
                 self.numInd = 0
@@ -684,6 +691,7 @@ class RandomDisplacementBounds(object):
 
 
 if __name__ == '__main__':  # if we're running file directly and not importing it
+    print "Wait a few minutes for events in reciprocal space"
     test = MantidEV()  # run the main function
     test.select_wksp()
     if test.events > 0:
@@ -694,5 +702,6 @@ if __name__ == '__main__':  # if we're running file directly and not importing i
             test.crystalplan()
     else:
         print "No events"
+    print "MantidEV finished"
 
 

@@ -2155,7 +2155,7 @@
     </rect>
    </property>
    <property name="title">
-    <string>Corrections</string>
+    <string>Absorption Correction</string>
    </property>
    <layout class="QHBoxLayout" name="horizontalLayout_5">
     <item>
@@ -3989,7 +3989,7 @@
       </property>
       <property name="maximumSize">
        <size>
-        <width>16777215</width>
+        <width>40</width>
         <height>16777215</height>
        </size>
       </property>
@@ -4117,6 +4117,20 @@
      </widget>
     </item>
     <item>
+     <widget class="QLabel" name="label_27">
+      <property name="text">
+       <string>pcharge</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="pcharge_ledt">
+      <property name="text">
+       <string>1.76e+13</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QLabel" name="label_6">
       <property name="text">
        <string>number edge pixels</string>
@@ -4142,7 +4156,7 @@
       </property>
       <property name="maximumSize">
        <size>
-        <width>16777215</width>
+        <width>40</width>
         <height>16777215</height>
        </size>
       </property>
