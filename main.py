@@ -453,7 +453,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             print "PostProcessingScriptFilename for StartLiveData: ",path
             self.format_template(templatePathRun, pathRun, **kw)
             print "Python script for running StartLiveData: ",pathRun
-            self.proc = Popen(['/usr/bin/python', str(path)], stdout=PIPE)
+            self.proc = Popen(['/usr/bin/python', str(pathRun)], stdout=PIPE)
         while True:
             output = self.proc.stdout.readline()
             if output == '' and self.proc.poll() is not None:
