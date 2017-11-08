@@ -6,7 +6,7 @@ from mpl_toolkits.mplot3d import proj3d
 import numpy as np
 from mantid.kernel import ConfigService
 from mantid.kernel import V3D
-from mantid.geometry import PointGroupFactory
+from mantid.geometry import OrientedLattice, PointGroupFactory
 from mantid import config
 ConfigService.setConsoleLogLevel(2)
 config['Q.convention'] = 'Crystallography'
@@ -87,11 +87,16 @@ class MantidEV():
             self.LorentzCorr = False
 
         if self._wksp:
-            output = ConvertToMD(InputWorkspace = self._wksp, QDimensions = 'Q3D', dEAnalysisMode = 'Elastic',
-                 LorentzCorrection = self.LorentzCorr, OutputWorkspace='output',
-                 Q3DFrames = 'Q_sample', QConversionScales = 'Q in A^-1',
-                 MinValues = str(self.minQ)+','+str(self.minQ)+','+str(self.minQ),
-                 MaxValues = str(self.maxQ)+','+str(self.maxQ)+','+str(self.maxQ))
+            try:
+                output = ConvertToMD(InputWorkspace = self._wksp, QDimensions = 'Q3D', dEAnalysisMode = 'Elastic',
+                     LorentzCorrection = self.LorentzCorr, OutputWorkspace='output',
+                     Q3DFrames = 'Q_sample', QConversionScales = 'Q in A^-1',
+                     MinValues = str(self.minQ)+','+str(self.minQ)+','+str(self.minQ),
+                     MaxValues = str(self.maxQ)+','+str(self.maxQ)+','+str(self.maxQ))
+            except:
+                print "Viewer failed with no data: decrease minimum intensity"
+                plt.close('all')
+                sys.exit()
             self._md = output
 
     def crystalplan(self):
@@ -212,6 +217,10 @@ class MantidEV():
                         self.y.append(self.minQ+step*Kj)
                         self.z.append(self.minQ+step*Hj)
                         self.s.append(10)
+        if (len(self.c)) < 1:
+            print "Viewer failed with no data: decrease minimum intensity"
+            plt.close('all')
+            sys.exit()
         fig = plt.figure("ReciprocalSpace"+str(self.events),figsize = (self.screen_x, self.screen_y))
         ax = fig.gca(projection = '3d')
         vmin = min(self.c)
@@ -703,5 +712,6 @@ if __name__ == '__main__':  # if we're running file directly and not importing i
     else:
         print "No events"
     print "MantidEV finished"
+    plt.close('all')
 
 
