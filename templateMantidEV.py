@@ -711,6 +711,6 @@ if __name__ == '__main__':  # if we're running file directly and not importing i
             test.crystalplan()
     else:
         print "No events"
-    print "MantidEV finished"
+    print "Plotting finished for current data"
 
 
