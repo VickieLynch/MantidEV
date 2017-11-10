@@ -95,7 +95,6 @@ class MantidEV():
                      MaxValues = str(self.maxQ)+','+str(self.maxQ)+','+str(self.maxQ))
             except:
                 print "Viewer failed with no data: decrease minimum intensity"
-                plt.close('all')
                 sys.exit()
             self._md = output
 
@@ -219,7 +218,6 @@ class MantidEV():
                         self.s.append(10)
         if (len(self.c)) < 1:
             print "Viewer failed with no data: decrease minimum intensity"
-            plt.close('all')
             sys.exit()
         fig = plt.figure("ReciprocalSpace"+str(self.events),figsize = (self.screen_x, self.screen_y))
         ax = fig.gca(projection = '3d')
@@ -404,7 +402,7 @@ class MantidEV():
             sp = self.axP.scatter(self.x, self.y, self.z, c = self.c, vmin = vmin, vmax = vmax, cmap = cm, norm = logNorm, s = self.s, alpha = 0.2, picker = True)
             self.props = dict(boxstyle = 'round', facecolor = 'wheat', alpha = 1.0)
     
-            figP.canvas.mpl_connect('pick_event', self.onpick3)
+            cid = figP.canvas.mpl_connect('pick_event', self.onpick3)
 
             try:
                 lattice = self.peaks_ws.sample().getOrientedLattice()
@@ -440,6 +438,7 @@ class MantidEV():
             for xb, yb, zb in zip(Xb, Yb, Zb):
                self.axP.plot([xb], [yb], [zb], 'w')
             plt.show()
+            figP.canvas.mpl_disconnect(cid)
 
     def plot_crystalplan(self, unique, completeness, redundancy, multiple):
             self.x = []
@@ -485,7 +484,7 @@ class MantidEV():
             sp = self.axP.scatter(self.x, self.y, self.z, c = self.c, vmin = vmin, vmax = vmax, cmap = cm, norm = logNorm, s = self.s, alpha = 0.2, picker = True)
             self.props = dict(boxstyle = 'round', facecolor = 'wheat', alpha = 1.0)
     
-            figP.canvas.mpl_connect('pick_event', self.onpick3)
+            cid = figP.canvas.mpl_connect('pick_event', self.onpick3)
 
             try:
                 lattice = self.peaks_ws.sample().getOrientedLattice()
@@ -520,6 +519,7 @@ class MantidEV():
             for xb, yb, zb in zip(Xb, Yb, Zb):
                self.axP.plot([xb], [yb], [zb], 'w')
             plt.show()
+            figP.canvas.mpl_disconnect(cid)
 
     def onpick3(self, event):
             ind = event.ind
@@ -712,6 +712,5 @@ if __name__ == '__main__':  # if we're running file directly and not importing i
     else:
         print "No events"
     print "MantidEV finished"
-    plt.close('all')
 
 
