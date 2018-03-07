@@ -2,8 +2,7 @@
 
 # Form implementation generated from reading ui file 'design.ui'
 #
-# Created: Thu Nov  2 09:40:30 2017
-#      by: PyQt4 UI code generator 4.10.1
+# Created by: PyQt4 UI code generator 4.11.4
 #
 # WARNING! All changes made in this file will be lost!
 
@@ -1710,10 +1709,10 @@ class Ui_MantidEV(object):
         self.maxWavelength_ledt.setText(_translate("MantidEV", "3.5", None))
         self.label_19.setText(_translate("MantidEV", "minimum Q", None))
         self.minQspace_ledt.setToolTip(_translate("MantidEV", "Minimum Qx, Qy, Qz", None))
-        self.minQspace_ledt.setText(_translate("MantidEV", "-20", None))
+        self.minQspace_ledt.setText(_translate("MantidEV", "-25.0", None))
         self.label_18.setText(_translate("MantidEV", "maximum Q", None))
         self.maxQspace_ledt.setToolTip(_translate("MantidEV", "Maximum Qx, Qy, Qz", None))
-        self.maxQspace_ledt.setText(_translate("MantidEV", "20", None))
+        self.maxQspace_ledt.setText(_translate("MantidEV", "25.0", None))
         self.groupBox_5.setTitle(_translate("MantidEV", "Absorption Correction", None))
         self.label_17.setText(_translate("MantidEV", "sample radius", None))
         self.sampleRadius_ledt.setToolTip(_translate("MantidEV", "Positve value of sample radius (cm) for absorption correction", None))

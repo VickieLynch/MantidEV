@@ -65,7 +65,7 @@ class MantidEV():
             AddSampleLog(Workspace=self._wksp, LogName='omega', LogText=str(self.omega), LogType='Number')
             SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
             angles = self._wksp.run().getGoniometer().getEulerAngles('YZY')
-        print "omega,chi,phi=",angles
+        print ("omega,chi,phi=",angles)
 
         if self.calFileName:
             LoadIsawDetCal(InputWorkspace=self._wksp,Filename=str(self.calFileName))  # load cal file
@@ -94,7 +94,7 @@ class MantidEV():
                      MinValues = str(self.minQ)+','+str(self.minQ)+','+str(self.minQ),
                      MaxValues = str(self.maxQ)+','+str(self.maxQ)+','+str(self.maxQ))
             except:
-                print "Viewer failed with no data: decrease minimum intensity"
+                print ("Viewer failed with no data: decrease minimum intensity")
                 sys.exit()
             self._md = output
 
@@ -130,7 +130,7 @@ class MantidEV():
         import csv
 
         fileName = self.outputDirectory+"/CrystalPlan"+str(self.events)+".csv"
-        print "Goniometer plan: ", fileName
+        print ("Goniometer plan: ", fileName)
         f = open(fileName, 'wt')
         comment0 = '\"measured\"'
         commentn = '\"optimized\"'
@@ -158,7 +158,7 @@ class MantidEV():
         finally:
             f.close()
 
-        print open(fileName, 'rt').read()
+        print (open(fileName, 'rt').read())
 
     def optimize(self, seed):
         # the starting point
@@ -217,7 +217,7 @@ class MantidEV():
                         self.z.append(self.minQ+step*Hj)
                         self.s.append(10)
         if (len(self.c)) < 1:
-            print "Viewer failed with no data: decrease minimum intensity"
+            print ("Viewer failed with no data: decrease minimum intensity")
             sys.exit()
         fig = plt.figure("ReciprocalSpace"+str(self.events),figsize = (self.screen_x, self.screen_y))
         ax = fig.gca(projection = '3d')
@@ -247,7 +247,7 @@ class MantidEV():
            ax.plot([xb], [yb], [zb], 'w')
         plt.show()
 
-    def plot_peaks(self):
+    def plot_peaks(self, xy):
             plt.rcParams.update({{'font.size': 6}})
             self.text = []
             distance_threshold = 0.9 * 6.28 / float(self.abcMax)
@@ -268,7 +268,7 @@ class MantidEV():
                 peak.setBinCount(self.c[i])
                 self.ws.addPeak(peak)
 #                except:
-#                    print "No peaks created", i, self.x[i], self.y[i], self.z[i]
+#                    print ("No peaks created", i, self.x[i], self.y[i], self.z[i])
     
             self.peaks_ws = FindPeaksMD( self._md, MaxPeaks = self.numPeaksToFind, OutputWorkspace="peaks",
                                     PeakDistanceThreshold = distance_threshold )
@@ -278,16 +278,16 @@ class MantidEV():
             try:
                 FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = self.abcMin, MaxD = self.abcMax, Tolerance = self.tolerance)
                 SaveIsawUB(self.peaks_ws, self.outputDirectory+"/Peaks"+str(self.events)+".mat")
-                print "UB matrix: ", self.outputDirectory+"/Peaks"+str(self.events)+".mat"
+                print ("UB matrix: ", self.outputDirectory+"/Peaks"+str(self.events)+".mat")
                 self.numInd,errInd = IndexPeaks( PeaksWorkspace = self.peaks_ws, Tolerance = self.tolerance, RoundHKLs = False)
                 try:
                     pg = PointGroupFactory.createPointGroup(self.pointGroup)
                     self.numInd,errInd = SelectCellOfType( PeaksWorkspace=self.peaks_ws, CellType=str(pg.getLatticeSystem()), 
                           Centering=self.centering, AllowPermutations=True, Apply=True, Tolerance=self.tolerance )
                     SaveIsawUB(self.peaks_ws, self.outputDirectory+"/PeaksSym"+str(self.events)+".mat")
-                    print "UB matrix: ", self.outputDirectory+"/PeaksSym"+str(self.events)+".mat"
+                    print ("UB matrix: ", self.outputDirectory+"/PeaksSym"+str(self.events)+".mat")
                 except:
-                    print "Point group symmetry failed"
+                    print ("Point group symmetry failed")
                 if self.predictPeaks or self.addOrientations:
                     self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength,
                          EdgePixels=self.edgePixels,
@@ -295,7 +295,7 @@ class MantidEV():
                 CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self._wksp,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
             except:
                 self.numInd = 0
-                print "UB matrix not found"
+                print ("UB matrix not found")
 
             self.peaks_ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = self.peakRadius,
                               CoordinatesToUse = "Q (sample frame)",
@@ -303,7 +303,7 @@ class MantidEV():
                               BackgroundInnerRadius = self.bkg_inner_radius,
                               PeaksWorkspace = self.peaks_ws, OutputWorkspace="peaks")
             SaveIsawPeaks(self.peaks_ws, self.outputDirectory+"/Peaks"+str(self.events)+".integrate")
-            print "Peaks file: ", self.outputDirectory+"/Peaks"+str(self.events)+".integrate"
+            print ("Peaks file: ", self.outputDirectory+"/Peaks"+str(self.events)+".integrate")
     
             # this is number of predicted peaks if that option is selected
             nPeaks = self.peaks_ws.getNumberPeaks()
@@ -337,11 +337,19 @@ class MantidEV():
                 self.y = np.append(self.y,qsample.Y())
                 self.z = np.append(self.z,qsample.Z())
                 self.s = np.append(self.s,320)
+                if xy:
+                    peakRadius2 = self.peakRadius
+                    peakRadius3 = 0.05
+                    bins = '100,100,1'
+                else:
+                    peakRadius2 = 0.05
+                    peakRadius3 = self.peakRadius
+                    bins = '100,1,100'
                 sl2d = BinMD(InputWorkspace=self._md, AxisAligned=False, BasisVector0='Q_sample_x,Angstrom^-1,1,0,0',
                     BasisVector1='Q_sample_y,Angstrom^-1,0,1,0', BasisVector2='Q_sample_z,Angstrom^-1,0,0,1',
-                    OutputExtents=str(qsample.X()-self.peakRadius)+','+str(qsample.X()+self.peakRadius)+','+str(qsample.Y()-0.05)
-                    +','+str(qsample.Y()+0.05)+','+str(qsample.Z()-self.peakRadius)+','+str(qsample.Z()+self.peakRadius),
-                    OutputBins='100,1,100', Parallel=True)
+                    OutputExtents=str(qsample.X()-self.peakRadius)+','+str(qsample.X()+self.peakRadius)+','+str(qsample.Y()-peakRadius2)
+                    +','+str(qsample.Y()+peakRadius2)+','+str(qsample.Z()-peakRadius3)+','+str(qsample.Z()+peakRadius3),
+                    OutputBins=bins, Parallel=True)
                 #10 subplots per page
                 pcm=self.Plot2DMD(axs[j],sl2d, hkl, NumEvNorm=False)
                 figS.colorbar(pcm,ax=axs[j])
@@ -365,7 +373,7 @@ class MantidEV():
             try:
                 IndexPeaks( PeaksWorkspace = self.ws, Tolerance = 1.0, RoundHKLs = False )
             except:
-                print "UB matrix not found"
+                print ("UB matrix not found")
             self.ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = self.peakRadius,
                               CoordinatesToUse = "Q (sample frame)",
                               BackgroundOuterRadius = self.bkg_outer_radius,
@@ -394,6 +402,7 @@ class MantidEV():
                         +'\nE(meV):'+'%.3f'%(peak.getFinalEnergy()))
             figP = plt.figure("EventsAndPeaks"+str(self.events),figsize = (self.screen_x, self.screen_y))
             self.axP = figP.gca(projection = '3d')
+            self.plot_lattice('green')
             self.c[self.c<=1] = 1.
             vmin = min(self.c)
             vmax = max(self.c)
@@ -401,7 +410,7 @@ class MantidEV():
             logNorm = colors.LogNorm(vmin = vmin, vmax = vmax)
             sp = self.axP.scatter(self.x, self.y, self.z, c = self.c, vmin = vmin, vmax = vmax, cmap = cm, norm = logNorm, s = self.s, alpha = 0.2, picker = True)
             self.props = dict(boxstyle = 'round', facecolor = 'wheat', alpha = 1.0)
-    
+
             cid = figP.canvas.mpl_connect('pick_event', self.onpick3)
 
             try:
@@ -439,6 +448,56 @@ class MantidEV():
                self.axP.plot([xb], [yb], [zb], 'w')
             plt.show()
             figP.canvas.mpl_disconnect(cid)
+
+    def plot_lattice(self, latColor):
+            predict_peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength,
+                 WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, 
+                 OutputWorkspace="predict")
+            self.predict_dict = {{}}
+            for i in range(predict_peaks_ws.getNumberPeaks()):
+                peak = predict_peaks_ws.getPeak(i)
+                self.predict_dict.update({{peak.getHKL(): peak.getQSampleFrame()}}) 
+            for Hj in range(int(self.minQ),int(self.maxQ)+1):
+                for Kj in range(int(self.minQ),int(self.maxQ)+1):
+                    for Lj in range(int(self.minQ),int(self.maxQ)+1):
+                        if V3D(Hj,Kj,Lj) in self.predict_dict:
+                            xyz0 = self.predict_dict[V3D(Hj,Kj,Lj)]
+                            if V3D(Hj,Kj,Lj+1) in self.predict_dict:
+                                qx = []
+                                qy = []
+                                qz = []
+                                qx = np.append(qx, xyz0.getX())
+                                qy = np.append(qy, xyz0.getY())
+                                qz = np.append(qz, xyz0.getZ())
+                                xyz = self.predict_dict[V3D(Hj,Kj,Lj+1)]
+                                qx = np.append(qx, xyz.getX())
+                                qy = np.append(qy, xyz.getY())
+                                qz = np.append(qz, xyz.getZ())
+                                self.axP.plot(qx,qy,qz, color=latColor, linewidth=1, alpha=0.2)
+                            if V3D(Hj,Kj+1,Lj) in self.predict_dict:
+                                qx = []
+                                qy = []
+                                qz = []
+                                qx = np.append(qx, xyz0.getX())
+                                qy = np.append(qy, xyz0.getY())
+                                qz = np.append(qz, xyz0.getZ())
+                                xyz = self.predict_dict[V3D(Hj,Kj+1,Lj)]
+                                qx = np.append(qx, xyz.getX())
+                                qy = np.append(qy, xyz.getY())
+                                qz = np.append(qz, xyz.getZ())
+                                self.axP.plot(qx,qy,qz, color=latColor, linewidth=1, alpha=0.2)
+                            if V3D(Hj+1,Kj,Lj) in self.predict_dict:
+                                qx = []
+                                qy = []
+                                qz = []
+                                qx = np.append(qx, xyz0.getX())
+                                qy = np.append(qy, xyz0.getY())
+                                qz = np.append(qz, xyz0.getZ())
+                                xyz = self.predict_dict[V3D(Hj+1,Kj,Lj)]
+                                qx = np.append(qx, xyz.getX())
+                                qy = np.append(qy, xyz.getY())
+                                qz = np.append(qz, xyz.getZ())
+                                self.axP.plot(qx,qy,qz, color=latColor, linewidth=1, alpha=0.2)
 
     def plot_crystalplan(self, unique, completeness, redundancy, multiple):
             self.x = []
@@ -532,7 +591,7 @@ class MantidEV():
             try:
                 txt.remove()
             except:
-                print "First peak picked"
+                print ("First peak picked")
             txt = self.axP.text(xp[0],yp[0],zp[0],label[0],zdirs, bbox = self.props)
     
     def dim2array(self, d,center=True):
@@ -700,17 +759,18 @@ class RandomDisplacementBounds(object):
 
 
 if __name__ == '__main__':  # if we're running file directly and not importing it
-    print "Wait a few minutes for events in reciprocal space"
+    print ("Wait a few minutes for events in reciprocal space")
     test = MantidEV()  # run the main function
     test.select_wksp()
     if test.events > 0:
         test.plot_Q()
-        test.plot_peaks()
+        test.plot_peaks(True)
+        test.plot_peaks(False)
         test.plot_Qpeaks()
         if test.numOrientations > 0:
             test.crystalplan()
     else:
-        print "No events"
-    print "Plotting finished for current data"
+        print ("No events")
+    print ("Plotting finished for current data")
 
 

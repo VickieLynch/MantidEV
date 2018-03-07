@@ -90,8 +90,8 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.molecularFormula = ""
         self.Z =str( 0)
         self.unitCellVolume =str( 0)
-        self.minQ=str(-20)
-        self.maxQ=str(20)
+        self.minQ=str(-25.0)
+        self.maxQ=str(25.0)
         self.numPeaksToFind =str( 50)
         self.abcMin =str( 3)
         self.abcMax =str( 11)
@@ -391,7 +391,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
         self.pcharge = int(temp)
 
     def reject(self):
-        print "script has been killed"
+        print ("script has been killed")
         self.proc.kill()
         
     def accept(self):
@@ -443,16 +443,16 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             self.line_prepender(path, 'from mantid.simpleapi import *')
             self.line_prepender(path, 'sys.path.append("/opt/mantidnightly/bin")')
             self.line_prepender(path, 'import sys')
-            print "Python script for NeXus file: ",path
+            print ("Python script for NeXus file: ",path)
             self.proc = Popen(['/usr/bin/python', str(path)], stdout=PIPE)
         else:
             path = self.outputDirectory+"/MantidEV.py"
             pathRun = self.outputDirectory+"/runMantidEV.py"
             templatePathRun = "./templateRunMantidEV.py"
             self.format_template(templatePath, path, **kw)
-            print "PostProcessingScriptFilename for StartLiveData: ",path
+            print ("PostProcessingScriptFilename for StartLiveData: ",path)
             self.format_template(templatePathRun, pathRun, **kw)
-            print "Python script for running StartLiveData: ",pathRun
+            print ("Python script for running StartLiveData: ",pathRun)
             self.proc = Popen(['/usr/bin/python', str(pathRun)], stdout=PIPE)
         while True:
             output = self.proc.stdout.readline()
@@ -467,6 +467,7 @@ def main():
     form = MantidEV()  # We set the form to be our MantidEV (design)
     form.show()  # Show the form
     app.exec_()  # and execute the app
+    os.system('stty sane')
 
 
 if __name__ == '__main__':  # if we're running file directly and not importing it

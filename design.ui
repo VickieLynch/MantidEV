@@ -1946,7 +1946,7 @@
        <string/>
       </property>
       <property name="text">
-       <string>-20</string>
+       <string>-25.0</string>
       </property>
       <property name="maxLength">
        <number>32767</number>
@@ -2099,7 +2099,7 @@
        <string/>
       </property>
       <property name="text">
-       <string>20</string>
+       <string>25.0</string>
       </property>
       <property name="maxLength">
        <number>32767</number>
