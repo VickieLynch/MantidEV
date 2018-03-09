@@ -180,7 +180,7 @@
        <string/>
       </property>
       <property name="text">
-       <string>180</string>
+       <string>60</string>
       </property>
       <property name="maxLength">
        <number>32767</number>

@@ -1679,7 +1679,7 @@ class Ui_MantidEV(object):
         self.instrument_cmbx.setItemText(2, _translate("MantidEV", "CORELLI", None))
         self.label.setText(_translate("MantidEV", "seconds", None))
         self.seconds_ledt.setToolTip(_translate("MantidEV", "Goniometer omega angle if logs not available (degrees)", None))
-        self.seconds_ledt.setText(_translate("MantidEV", "180", None))
+        self.seconds_ledt.setText(_translate("MantidEV", "60", None))
         self.label_3.setText(_translate("MantidEV", "phi", None))
         self.phi_ledt.setToolTip(_translate("MantidEV", "Goniometer phi angle if logs not available (degrees)", None))
         self.phi_ledt.setText(_translate("MantidEV", "0", None))

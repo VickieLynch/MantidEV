@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 from PyQt4 import QtGui, QtCore  # Import the PyQt4 module we'll need
 import sys  # We need sys so that we can pass argv to QApplication
 from subprocess import PIPE, Popen
@@ -77,7 +78,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
 
     def setDefaults(self):
         self.instrument = "TOPAZ"
-        self.seconds = str(180)
+        self.seconds = str(60)
         self.phi =str( 0.0)
         self.chi =str( 135.0)
         self.omega =str( 0.0)
@@ -443,6 +444,7 @@ class MantidEV(QtGui.QMainWindow, design.Ui_MantidEV):
             self.line_prepender(path, 'from mantid.simpleapi import *')
             self.line_prepender(path, 'sys.path.append("/opt/mantidnightly/bin")')
             self.line_prepender(path, 'import sys')
+            self.line_prepender(path, 'from __future__ import print_function')
             print ("Python script for NeXus file: ",path)
             self.proc = Popen(['/usr/bin/python', str(path)], stdout=PIPE)
         else:

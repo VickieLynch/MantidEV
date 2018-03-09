@@ -50,14 +50,23 @@ class MantidEV():
         self.changeOmega = {changeOmega}
         self.useSymmetry = {useSymmetry}
         self.addOrientations = {addOrientations}
+        self.seconds = {seconds}
 
     def select_wksp(self):
         try:
             props=input.run().getProperties()
             self._wksp = input
             SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
+            self.last = 1
         except:
-            self._wksp = Load(Filename=self.eventFileName,OutputWorkspace="eventWksp")
+            self._wksp = Load(Filename=self.eventFileName,OutputWorkspace="eventWksp",
+                              FilterByTimeStart = self.time_start, FilterByTimeStop = self.time_stop)
+            self.time_start = self.time_stop
+            self.time_stop += int(self.seconds)
+            duration = self._wksp.getRun().getProperty("duration").value
+            if self.time_start > duration:
+                print ("No events next time")
+                self.last = 1
         angles = self._wksp.run().getGoniometer().getEulerAngles('YZY')
         if angles[1] == 0.0:
             AddSampleLog(Workspace=self._wksp, LogName='phi', LogText=str(self.phi), LogType='Number')
@@ -65,12 +74,11 @@ class MantidEV():
             AddSampleLog(Workspace=self._wksp, LogName='omega', LogText=str(self.omega), LogType='Number')
             SetGoniometer(Workspace=self._wksp,Axis0="omega,0,1,0,1",Axis1="chi,0,0,1,1",Axis2="phi,0,1,0,1")
             angles = self._wksp.run().getGoniometer().getEulerAngles('YZY')
-        print ("omega,chi,phi=",angles)
+        print ("phi,chi,omega=",angles[0],angles[1],angles[2])
 
         if self.calFileName:
             LoadIsawDetCal(InputWorkspace=self._wksp,Filename=str(self.calFileName))  # load cal file
         
-        self.events = self._wksp.getNumberEvents()
         try:
             self._wksp = ConvertUnits(InputWorkspace = self._wksp,OutputWorkspace="eventWksp",Target="dSpacing",EMode="Elastic")
             self._wksp = CropWorkspace(InputWorkspace = self._wksp, XMin = self.minDSpacing,OutputWorkspace="eventWksp")
@@ -96,7 +104,13 @@ class MantidEV():
             except:
                 print ("Viewer failed with no data: decrease minimum intensity")
                 sys.exit()
-            self._md = output
+            if self.time_start <= self.seconds:
+                self._md = CloneMDWorkspace(InputWorkspace=output, OutputWorkspace='sum_output')
+            else:
+                self._md += output
+            self.events = self._md.getNEvents()
+        else:
+            self.events = 0
 
     def crystalplan(self):
         angles = self.peaks_ws.run().getGoniometer().getEulerAngles('YZY')
@@ -761,16 +775,20 @@ class RandomDisplacementBounds(object):
 if __name__ == '__main__':  # if we're running file directly and not importing it
     print ("Wait a few minutes for events in reciprocal space")
     test = MantidEV()  # run the main function
-    test.select_wksp()
-    if test.events > 0:
-        test.plot_Q()
-        test.plot_peaks(True)
-        test.plot_peaks(False)
-        test.plot_Qpeaks()
-        if test.numOrientations > 0:
-            test.crystalplan()
-    else:
-        print ("No events")
+    test.time_start = 0
+    test.time_stop = test.time_start + test.seconds
+    test.last = 0
+    while test.last == 0:
+        test.select_wksp()
+        if test.events > 0:
+            test.plot_Q()
+            test.plot_peaks(True)
+            test.plot_peaks(False)
+            test.plot_Qpeaks()
+            if test.numOrientations > 0:
+                test.crystalplan()
+#    else:
+#        print ("No events")
     print ("Plotting finished for current data")
 
 
