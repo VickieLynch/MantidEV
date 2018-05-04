@@ -261,257 +261,210 @@ class MantidEV():
            ax.plot([xb], [yb], [zb], 'w')
         plt.show()
 
-    def plot_peaks(self, xy):
-            plt.rcParams.update({{'font.size': 6}})
-            self.text = []
-            distance_threshold = 0.9 * 6.28 / float(self.abcMax)
-            #End Input from GUI
-            self.bkg_inner_radius = self.peakRadius
-            self.bkg_outer_radius = self.peakRadius  * 1.25992105 # A factor of 2 ^ (1/3)
-            R=self._wksp.run().getGoniometer().getR()
-            #Create peaks for all 3D grid point about minIntensity
-            self.ws = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace="events")
-            CopySample(InputWorkspace = self._md,OutputWorkspace = self.ws,CopyName = True,CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
-        
-            for i in range(len(self.x)):
-#                try:
-                qSample=V3D(self.x[i],self.y[i],self.z[i])
-                qLab = R.dot(qSample)
-                peak = self.ws.createPeak(qLab)
-                peak.setQSampleFrame(qSample)
-                peak.setBinCount(self.c[i])
-                self.ws.addPeak(peak)
-#                except:
-#                    print ("No peaks created", i, self.x[i], self.y[i], self.z[i])
-    
-            self.peaks_ws = FindPeaksMD( self._md, MaxPeaks = self.numPeaksToFind, OutputWorkspace="peaks",
-                                    PeakDistanceThreshold = distance_threshold )
-            self.instrument = self.peaks_ws.getInstrument()
-            self.npeaks = self.peaks_ws.getNumberPeaks()
-         
-            try:
-                FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = self.abcMin, MaxD = self.abcMax, Tolerance = self.tolerance)
-                SaveIsawUB(self.peaks_ws, self.outputDirectory+"/Peaks"+str(self.events)+".mat")
-                print ("UB matrix: ", self.outputDirectory+"/Peaks"+str(self.events)+".mat")
-                self.numInd,errInd = IndexPeaks( PeaksWorkspace = self.peaks_ws, Tolerance = self.tolerance, RoundHKLs = False)
-                try:
-                    pg = PointGroupFactory.createPointGroup(self.pointGroup)
-                    self.numInd,errInd = SelectCellOfType( PeaksWorkspace=self.peaks_ws, CellType=str(pg.getLatticeSystem()), 
-                          Centering=self.centering, AllowPermutations=True, Apply=True, Tolerance=self.tolerance )
-                    SaveIsawUB(self.peaks_ws, self.outputDirectory+"/PeaksSym"+str(self.events)+".mat")
-                    print ("UB matrix: ", self.outputDirectory+"/PeaksSym"+str(self.events)+".mat")
-                except:
-                    print ("Point group symmetry failed")
-                if self.predictPeaks or self.addOrientations:
-                    self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength,
-                         EdgePixels=self.edgePixels,
-                         WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, OutputWorkspace="peaks")
-                CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self._wksp,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
-            except:
-                self.numInd = 0
-                print ("UB matrix not found")
+    def find_peaks(self):
+        distance_threshold = 0.9 * 6.28 / float(self.abcMax)
+        #End Input from GUI
+        self.bkg_inner_radius = self.peakRadius
+        self.bkg_outer_radius = self.peakRadius  * 1.25992105 # A factor of 2 ^ (1/3)
+        #Create peaks for all 3D grid point about minIntensity
 
-            self.peaks_ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = self.peakRadius,
-                              CoordinatesToUse = "Q (sample frame)",
-                              BackgroundOuterRadius = self.bkg_outer_radius,
-                              BackgroundInnerRadius = self.bkg_inner_radius,
-                              PeaksWorkspace = self.peaks_ws, OutputWorkspace="peaks")
-            SaveIsawPeaks(self.peaks_ws, self.outputDirectory+"/Peaks"+str(self.events)+".integrate")
-            print ("Peaks file: ", self.outputDirectory+"/Peaks"+str(self.events)+".integrate")
-    
-            # this is number of predicted peaks if that option is selected
-            nPeaks = self.peaks_ws.getNumberPeaks()
-            self.sumIsigI = 0.0
-            self.sumIsigI2 = 0.0
-            self.sumIsigI5 = 0.0
-            figS, axs = plt.subplots(10, 10, sharex=False, sharey=False, figsize=(self.screen_x, self.screen_y))
-            figS.canvas.set_window_title('Peaks'+str(self.events))
-            axs = axs.flatten()
-            for i in range(nPeaks):
-                j = i%len(axs)
-                peak = self.peaks_ws.getPeak(i)
-                hkl = str(int(peak.getH()+0.5))+','+str(int(peak.getK()+0.5))+','+str(int(peak.getL()+0.5))
-                qsample = peak.getQSampleFrame()
-                intensity = peak.getIntensity()
-                sigI = peak.getSigmaIntensity()
-                if sigI !=  0.0:
-                    IsigI = intensity/sigI
-                    if (IsigI > 10.):
-                        self.sumIsigI +=  1.0
-                    if (IsigI > 5.):
-                        self.sumIsigI5 +=  1.0
-                    if (IsigI > 2.):
-                        self.sumIsigI2 +=  1.0
-                else:
-                    IsigI = 0.0
-                detID = int(peak.getDetectorID())
-                bank = self.instrument.getDetector(detID).getName()
-                self.c = np.append(self.c,max(self.minIntensity,intensity))
-                self.x = np.append(self.x,qsample.X())
-                self.y = np.append(self.y,qsample.Y())
-                self.z = np.append(self.z,qsample.Z())
-                self.s = np.append(self.s,320)
-                if xy:
-                    peakRadius2 = self.peakRadius
-                    peakRadius3 = 0.05
-                    bins = '100,100,1'
-                else:
-                    peakRadius2 = 0.05
-                    peakRadius3 = self.peakRadius
-                    bins = '100,1,100'
-                sl2d = BinMD(InputWorkspace=self._md, AxisAligned=False, BasisVector0='Q_sample_x,Angstrom^-1,1,0,0',
-                    BasisVector1='Q_sample_y,Angstrom^-1,0,1,0', BasisVector2='Q_sample_z,Angstrom^-1,0,0,1',
-                    OutputExtents=str(qsample.X()-self.peakRadius)+','+str(qsample.X()+self.peakRadius)+','+str(qsample.Y()-peakRadius2)
-                    +','+str(qsample.Y()+peakRadius2)+','+str(qsample.Z()-peakRadius3)+','+str(qsample.Z()+peakRadius3),
-                    OutputBins=bins, Parallel=True)
-                #10 subplots per page
-                pcm=self.Plot2DMD(axs[j],sl2d, hkl, NumEvNorm=False)
-                figS.colorbar(pcm,ax=axs[j])
-#                plt.tight_layout(pad = 1.0, w_pad=2.0, h_pad=10.0)
-                if j == len(axs)-1 and i < nPeaks-1:
-                    plt.show()
-                    figS, axs = plt.subplots(10, 10, sharex=False, sharey=False, figsize=(self.screen_x, self.screen_y))
-                    figS.canvas.set_window_title('Peaks'+str(self.events))
-                    axs = axs.flatten()
+        self.peaks_ws = FindPeaksMD( self._md, MaxPeaks = self.numPeaksToFind, OutputWorkspace="peaks",
+                                PeakDistanceThreshold = distance_threshold )
+        self.instrument = self.peaks_ws.getInstrument()
+        self.npeaks = self.peaks_ws.getNumberPeaks()
+     
+        try:
+            FindUBUsingFFT( PeaksWorkspace = self.peaks_ws, MinD = self.abcMin, MaxD = self.abcMax, Tolerance = self.tolerance)
+            SaveIsawUB(self.peaks_ws, self.outputDirectory+"/Peaks"+str(self.events)+".mat")
+            print ("UB matrix: ", self.outputDirectory+"/Peaks"+str(self.events)+".mat")
+            self.numInd,errInd = IndexPeaks( PeaksWorkspace = self.peaks_ws, Tolerance = self.tolerance, RoundHKLs = False)
+            try:
+                pg = PointGroupFactory.createPointGroup(self.pointGroup)
+                self.numInd,errInd = SelectCellOfType( PeaksWorkspace=self.peaks_ws, CellType=str(pg.getLatticeSystem()), 
+                      Centering=self.centering, AllowPermutations=True, Apply=True, Tolerance=self.tolerance )
+                SaveIsawUB(self.peaks_ws, self.outputDirectory+"/PeaksSym"+str(self.events)+".mat")
+                print ("UB matrix: ", self.outputDirectory+"/PeaksSym"+str(self.events)+".mat")
+            except:
+                print ("Point group symmetry failed")
+            if self.predictPeaks or self.addOrientations:
+                self.peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength,
+                     EdgePixels=self.edgePixels,
+                     WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, OutputWorkspace="peaks")
+            CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self._wksp,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
+        except:
+            self.numInd = 0
+            print ("UB matrix not found")
+
+        # this is number of predicted peaks if that option is selected
+        nPeaks = self.peaks_ws.getNumberPeaks()
+        self.sumIsigI = 0.0
+        self.sumIsigI2 = 0.0
+        self.sumIsigI5 = 0.0
+        for i in range(nPeaks):
+            peak = self.peaks_ws.getPeak(i)
+            qsample = peak.getQSampleFrame()
+            intensity = peak.getIntensity()
+            sigI = peak.getSigmaIntensity()
+            if sigI !=  0.0:
+                IsigI = intensity/sigI
+                if (IsigI > 10.):
+                    self.sumIsigI +=  1.0
+                if (IsigI > 5.):
+                    self.sumIsigI5 +=  1.0
+                if (IsigI > 2.):
+                    self.sumIsigI2 +=  1.0
+            else:
+                IsigI = 0.0
+            detID = int(peak.getDetectorID())
+            bank = self.instrument.getDetector(detID).getName()
+            self.c = np.append(self.c,max(self.minIntensity,intensity))
+            self.x = np.append(self.x,qsample.X())
+            self.y = np.append(self.y,qsample.Y())
+            self.z = np.append(self.z,qsample.Z())
+            self.s = np.append(self.s,320)
+        self.sumIsigI /=  nPeaks/100.0
+        self.sumIsigI5 /=  nPeaks/100.0
+        self.sumIsigI2 /=  nPeaks/100.0
+
+    def plot_peaks(self, xy):
+        plt.rcParams.update({{'font.size': 6}})
+        figS, axs = plt.subplots(10, 10, sharex=False, sharey=False, figsize=(self.screen_x, self.screen_y))
+        figS.canvas.set_window_title('Peaks'+str(self.events))
+        axs = axs.flatten()
+        if xy:
+            peakRadius2 = self.peakRadius
+            peakRadius3 = 0.05
+            bins = '100,100,1'
+        else:
+            peakRadius2 = 0.05
+            peakRadius3 = self.peakRadius
+            bins = '100,1,100'
+        nPeaks = self.peaks_ws.getNumberPeaks()
+        for i in range(nPeaks):
+            j = i%len(axs)
+            peak = self.peaks_ws.getPeak(i)
+            hkl = str(int(peak.getH()+0.5))+','+str(int(peak.getK()+0.5))+','+str(int(peak.getL()+0.5))
+            qsample = peak.getQSampleFrame()
+            sl2d = BinMD(InputWorkspace=self._md, AxisAligned=False, BasisVector0='Q_sample_x,Angstrom^-1,1,0,0',
+                BasisVector1='Q_sample_y,Angstrom^-1,0,1,0', BasisVector2='Q_sample_z,Angstrom^-1,0,0,1',
+                OutputExtents=str(qsample.X()-self.peakRadius)+','+str(qsample.X()+self.peakRadius)+','+str(qsample.Y()-peakRadius2)
+                +','+str(qsample.Y()+peakRadius2)+','+str(qsample.Z()-peakRadius3)+','+str(qsample.Z()+peakRadius3),
+                OutputBins=bins, Parallel=True)
+            #10 subplots per page
+            pcm=self.Plot2DMD(axs[j],sl2d, hkl, NumEvNorm=False)
+            figS.colorbar(pcm,ax=axs[j])
+            if j == len(axs)-1 and i < nPeaks-1:
+                plt.show()
+                figS, axs = plt.subplots(10, 10, sharex=False, sharey=False, figsize=(self.screen_x, self.screen_y))
+                figS.canvas.set_window_title('Peaks'+str(self.events))
+                axs = axs.flatten()
             # do not draw axes for non-existant peaks
             for k in range(j+1,len(axs)):
                 axs[k].axis('off')
-            plt.show()
-            self.sumIsigI /=  nPeaks/100.0
-            self.sumIsigI5 /=  nPeaks/100.0
-            self.sumIsigI2 /=  nPeaks/100.0
+        plt.show()
     
     def plot_Qpeaks(self):
-            plt.rcParams.update({{'font.size': 10}})
-            CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self.ws,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
-            try:
-                IndexPeaks( PeaksWorkspace = self.ws, Tolerance = 1.0, RoundHKLs = False )
-            except:
-                print ("UB matrix not found")
-            self.ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = self.peakRadius,
-                              CoordinatesToUse = "Q (sample frame)",
-                              BackgroundOuterRadius = self.bkg_outer_radius,
-                              BackgroundInnerRadius = self.bkg_inner_radius,
-                              PeaksWorkspace = self.ws, OutputWorkspace="events")
-            self.ws = CombinePeaksWorkspaces(LHSWorkspace = self.ws, RHSWorkspace = self.peaks_ws, OutputWorkspace='events')
-            npeaksTotal = self.ws.getNumberPeaks()
-            for i in range(npeaksTotal):
-                    peak = self.ws.getPeak(i)
-                    if peak.getSigmaIntensity() !=  0.0:
-                        IsigI = peak.getIntensity()/peak.getSigmaIntensity()
-                    else:
-                        IsigI = 0.0
-                    detID = int(peak.getDetectorID())
-                    bank = self.instrument.getDetector(detID).getName()
-                    self.text.append('Counts:'+'%.3f'%(peak.getBinCount())
-                        + '\nIntegral, I/sigI:'+'%.3f %.3f'%(peak.getIntensity(),IsigI)
-                        +'\nDetector Number:'+bank
-                        +'\nh,k,l:'+'%.3f %.3f %.3f'%(peak.getH(),peak.getK(),peak.getL())
-                        +'\nQ$_X$,Q$_Y$,Q$_Z$:'+'%.3f %.3f %.3f'%(self.x[i],self.y[i],self.z[i])
-                        +'\nQ($\AA^{{-1}}, 2\pi/d$):'+'%.3f'%(2*np.pi/peak.getDSpacing())
-                        +'\nd-Spacing($\AA$):'+'%.3f'%(peak.getDSpacing())
-                        +'\nWavelength($\AA$):'+'%.3f'%(peak.getWavelength())
-                        +'\n2$\\theta$($^\circ$):'+'%.3f'%(peak.getScattering())
-                        +'\nTime($\mu$s):'+'%.3f'%(peak.getTOF())
-                        +'\nE(meV):'+'%.3f'%(peak.getFinalEnergy()))
-            figP = plt.figure("EventsAndPeaks"+str(self.events),figsize = (self.screen_x, self.screen_y))
-            self.axP = figP.gca(projection = '3d')
-            self.plot_lattice('green')
-            self.c[self.c<=1] = 1.
-            vmin = min(self.c)
-            vmax = max(self.c)
-            cm = plt.cm.get_cmap('rainbow')
-            logNorm = colors.LogNorm(vmin = vmin, vmax = vmax)
-            sp = self.axP.scatter(self.x, self.y, self.z, c = self.c, vmin = vmin, vmax = vmax, cmap = cm, norm = logNorm, s = self.s, alpha = 0.2, picker = True)
-            self.props = dict(boxstyle = 'round', facecolor = 'wheat', alpha = 1.0)
+        plt.rcParams.update({{'font.size': 10}})
+        self.ws = CreatePeaksWorkspace(InstrumentWorkspace=self._wksp, NumberOfPeaks=0, OutputWorkspace="events")
+        CopySample(InputWorkspace = self.peaks_ws,OutputWorkspace = self.ws,CopyName = '0',CopyMaterial = '0',CopyEnvironment = '0',CopyShape = '0')
+        figP = plt.figure("EventsAndPeaks"+str(self.events),figsize = (self.screen_x, self.screen_y))
+        self.axP = figP.gca(projection = '3d')
+        self.plot_lattice('green')
+        self.c[self.c<=1] = 1.
+        vmin = min(self.c)
+        vmax = max(self.c)
+        cm = plt.cm.get_cmap('rainbow')
+        logNorm = colors.LogNorm(vmin = vmin, vmax = vmax)
+        sp = self.axP.scatter(self.x, self.y, self.z, c = self.c, vmin = vmin, vmax = vmax, cmap = cm, norm = logNorm, s = self.s, alpha = 0.2, picker = True)
+        self.props = dict(boxstyle = 'round', facecolor = 'wheat', alpha = 1.0)
 
-            cid = figP.canvas.mpl_connect('pick_event', self.onpick3)
+        cid = figP.canvas.mpl_connect('pick_event', self.onpick3)
 
-            try:
-                lattice = self.peaks_ws.sample().getOrientedLattice()
-            except:
-                lattice = OrientedLattice(1,1,1)
+        try:
+            lattice = self.peaks_ws.sample().getOrientedLattice()
+        except:
+            lattice = OrientedLattice(1,1,1)
 
-            self.axP.text2D(0.05, 0.70, "# Events = "+str(self.events)+
-                "\nPeaks with I/sigI > 10 = "+'%.1f'%(self.sumIsigI) +
-                "%\nPeaks with I/sigI > 5 = "+'%.1f'%(self.sumIsigI5) +
-                "%\nPeaks with I/sigI > 2 = "+'%.1f'%(self.sumIsigI2) +
-                "%\n# peaks indexed = "+str(self.numInd) + " out of " + str(self.npeaks) +
-                "\nLattice = " + " " + "{{:.2f}}".format(lattice.a()) + " " + "{{:.2f}}".format(lattice.b()) + " " + "{{:.2f}}".format(lattice.c()) + " " +
-                "{{:.2f}}".format(lattice.alpha()) + " " + "{{:.2f}}".format(lattice.beta()) + " " + "{{:.2f}}".format(lattice.gamma()) +
-                "\nError = " + " " + "{{:.2E}}".format(lattice.errora()) + " " + "{{:.2E}}".format(lattice.errorb()) + " " + "{{:.2E}}".format(lattice.errorc()) + " " +
-                "{{:.2E}}".format(lattice.erroralpha()) + " " + "{{:.2E}}".format(lattice.errorbeta()) + " " + "{{:.2E}}".format(lattice.errorgamma()) +
-                "\nClick on peak to see peak info." +
-                "\nHold mouse button to rotate." +
-                "\nClose window to continue." ,
-                fontsize = 20, transform = self.axP.transAxes)
-            self.axP.set_xlabel('Q$_X$')
-            self.axP.set_ylabel('Q$_Y$')
-            self.axP.set_zlabel('Q$_Z$')
-    
-    
-            formatter = LogFormatter(10, labelOnlyBase = False)
-            plt.colorbar(sp,ticks = [1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000], format = formatter)
-            # Create cubic bounding box to simulate equal aspect ratio
-            max_range = max([max(self.x)-min(self.x), max(self.y)-min(self.y), max(self.z)-min(self.z)])
-            Xb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][0].flatten() + 0.5*(max(self.x)+min(self.x))
-            Yb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][1].flatten() + 0.5*(max(self.y)+min(self.y))
-            Zb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][2].flatten() + 0.5*(max(self.z)+min(self.z))
-            # Comment or uncomment following both lines to test the fake bounding box:
-            for xb, yb, zb in zip(Xb, Yb, Zb):
-               self.axP.plot([xb], [yb], [zb], 'w')
-            plt.show()
-            figP.canvas.mpl_disconnect(cid)
+        self.axP.text2D(0.05, 0.70, "# Events = "+str(self.events)+
+            "\nPeaks with I/sigI > 10 = "+'%.1f'%(self.sumIsigI) +
+            "%\nPeaks with I/sigI > 5 = "+'%.1f'%(self.sumIsigI5) +
+            "%\nPeaks with I/sigI > 2 = "+'%.1f'%(self.sumIsigI2) +
+            "%\n# peaks indexed = "+str(self.numInd) + " out of " + str(self.npeaks) +
+            "\nLattice = " + " " + "{{:.2f}}".format(lattice.a()) + " " + "{{:.2f}}".format(lattice.b()) + " " + "{{:.2f}}".format(lattice.c()) + " " +
+            "{{:.2f}}".format(lattice.alpha()) + " " + "{{:.2f}}".format(lattice.beta()) + " " + "{{:.2f}}".format(lattice.gamma()) +
+            "\nError = " + " " + "{{:.2E}}".format(lattice.errora()) + " " + "{{:.2E}}".format(lattice.errorb()) + " " + "{{:.2E}}".format(lattice.errorc()) + " " +
+            "{{:.2E}}".format(lattice.erroralpha()) + " " + "{{:.2E}}".format(lattice.errorbeta()) + " " + "{{:.2E}}".format(lattice.errorgamma()) +
+            "\nClick on peak to see peak info." +
+            "\nHold mouse button to rotate." +
+            "\nClose window to continue." ,
+            fontsize = 20, transform = self.axP.transAxes)
+        self.axP.set_xlabel('Q$_X$')
+        self.axP.set_ylabel('Q$_Y$')
+        self.axP.set_zlabel('Q$_Z$')
+
+
+        formatter = LogFormatter(10, labelOnlyBase = False)
+        plt.colorbar(sp,ticks = [1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000], format = formatter)
+        # Create cubic bounding box to simulate equal aspect ratio
+        max_range = max([max(self.x)-min(self.x), max(self.y)-min(self.y), max(self.z)-min(self.z)])
+        Xb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][0].flatten() + 0.5*(max(self.x)+min(self.x))
+        Yb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][1].flatten() + 0.5*(max(self.y)+min(self.y))
+        Zb = 0.5*max_range*np.mgrid[-1:2:2,-1:2:2,-1:2:2][2].flatten() + 0.5*(max(self.z)+min(self.z))
+        # Comment or uncomment following both lines to test the fake bounding box:
+        for xb, yb, zb in zip(Xb, Yb, Zb):
+           self.axP.plot([xb], [yb], [zb], 'w')
+        plt.show()
+        figP.canvas.mpl_disconnect(cid)
 
     def plot_lattice(self, latColor):
-            predict_peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength,
-                 WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, 
-                 OutputWorkspace="predict")
-            self.predict_dict = {{}}
-            for i in range(predict_peaks_ws.getNumberPeaks()):
-                peak = predict_peaks_ws.getPeak(i)
-                self.predict_dict.update({{peak.getHKL(): peak.getQSampleFrame()}}) 
-            for Hj in range(int(self.minQ),int(self.maxQ)+1):
-                for Kj in range(int(self.minQ),int(self.maxQ)+1):
-                    for Lj in range(int(self.minQ),int(self.maxQ)+1):
-                        if V3D(Hj,Kj,Lj) in self.predict_dict:
-                            xyz0 = self.predict_dict[V3D(Hj,Kj,Lj)]
-                            if V3D(Hj,Kj,Lj+1) in self.predict_dict:
-                                qx = []
-                                qy = []
-                                qz = []
-                                qx = np.append(qx, xyz0.getX())
-                                qy = np.append(qy, xyz0.getY())
-                                qz = np.append(qz, xyz0.getZ())
-                                xyz = self.predict_dict[V3D(Hj,Kj,Lj+1)]
-                                qx = np.append(qx, xyz.getX())
-                                qy = np.append(qy, xyz.getY())
-                                qz = np.append(qz, xyz.getZ())
-                                self.axP.plot(qx,qy,qz, color=latColor, linewidth=1, alpha=0.2)
-                            if V3D(Hj,Kj+1,Lj) in self.predict_dict:
-                                qx = []
-                                qy = []
-                                qz = []
-                                qx = np.append(qx, xyz0.getX())
-                                qy = np.append(qy, xyz0.getY())
-                                qz = np.append(qz, xyz0.getZ())
-                                xyz = self.predict_dict[V3D(Hj,Kj+1,Lj)]
-                                qx = np.append(qx, xyz.getX())
-                                qy = np.append(qy, xyz.getY())
-                                qz = np.append(qz, xyz.getZ())
-                                self.axP.plot(qx,qy,qz, color=latColor, linewidth=1, alpha=0.2)
-                            if V3D(Hj+1,Kj,Lj) in self.predict_dict:
-                                qx = []
-                                qy = []
-                                qz = []
-                                qx = np.append(qx, xyz0.getX())
-                                qy = np.append(qy, xyz0.getY())
-                                qz = np.append(qz, xyz0.getZ())
-                                xyz = self.predict_dict[V3D(Hj+1,Kj,Lj)]
-                                qx = np.append(qx, xyz.getX())
-                                qy = np.append(qy, xyz.getY())
-                                qz = np.append(qz, xyz.getZ())
-                                self.axP.plot(qx,qy,qz, color=latColor, linewidth=1, alpha=0.2)
+        predict_peaks_ws = PredictPeaks(InputWorkspace=self.peaks_ws, WavelengthMin=self.minWavelength,
+             WavelengthMax=self.maxWavelength, MinDSpacing=self.minDSpacing, 
+             OutputWorkspace="predict")
+        self.predict_dict = {{}}
+        for i in range(predict_peaks_ws.getNumberPeaks()):
+            peak = predict_peaks_ws.getPeak(i)
+            self.predict_dict.update({{peak.getHKL(): peak.getQSampleFrame()}}) 
+        for Hj in range(int(self.minQ),int(self.maxQ)+1):
+            for Kj in range(int(self.minQ),int(self.maxQ)+1):
+                for Lj in range(int(self.minQ),int(self.maxQ)+1):
+                    if V3D(Hj,Kj,Lj) in self.predict_dict:
+                        xyz0 = self.predict_dict[V3D(Hj,Kj,Lj)]
+                        if V3D(Hj,Kj,Lj+1) in self.predict_dict:
+                            qx = []
+                            qy = []
+                            qz = []
+                            qx = np.append(qx, xyz0.getX())
+                            qy = np.append(qy, xyz0.getY())
+                            qz = np.append(qz, xyz0.getZ())
+                            xyz = self.predict_dict[V3D(Hj,Kj,Lj+1)]
+                            qx = np.append(qx, xyz.getX())
+                            qy = np.append(qy, xyz.getY())
+                            qz = np.append(qz, xyz.getZ())
+                            self.axP.plot(qx,qy,qz, color=latColor, linewidth=1, alpha=0.2)
+                        if V3D(Hj,Kj+1,Lj) in self.predict_dict:
+                            qx = []
+                            qy = []
+                            qz = []
+                            qx = np.append(qx, xyz0.getX())
+                            qy = np.append(qy, xyz0.getY())
+                            qz = np.append(qz, xyz0.getZ())
+                            xyz = self.predict_dict[V3D(Hj,Kj+1,Lj)]
+                            qx = np.append(qx, xyz.getX())
+                            qy = np.append(qy, xyz.getY())
+                            qz = np.append(qz, xyz.getZ())
+                            self.axP.plot(qx,qy,qz, color=latColor, linewidth=1, alpha=0.2)
+                        if V3D(Hj+1,Kj,Lj) in self.predict_dict:
+                            qx = []
+                            qy = []
+                            qz = []
+                            qx = np.append(qx, xyz0.getX())
+                            qy = np.append(qy, xyz0.getY())
+                            qz = np.append(qz, xyz0.getZ())
+                            xyz = self.predict_dict[V3D(Hj+1,Kj,Lj)]
+                            qx = np.append(qx, xyz.getX())
+                            qy = np.append(qy, xyz.getY())
+                            qz = np.append(qz, xyz.getZ())
+                            self.axP.plot(qx,qy,qz, color=latColor, linewidth=1, alpha=0.2)
 
     def plot_crystalplan(self, unique, completeness, redundancy, multiple):
             self.x = []
@@ -530,23 +483,6 @@ class MantidEV():
                     self.y = np.append(self.y,qsample.Y())
                     self.z = np.append(self.z,qsample.Z())
                     self.s = np.append(self.s,40)
-                    if peak.getSigmaIntensity() !=  0.0:
-                        IsigI = peak.getIntensity()/peak.getSigmaIntensity()
-                    else:
-                        IsigI = 0.0
-                    detID = int(peak.getDetectorID())
-                    bank = self.instrument.getDetector(detID).getName()
-                    self.text.append('Counts:'+'%.3f'%(peak.getBinCount())
-                        + '\nIntegral, I/sigI:'+'%.3f %.3f'%(peak.getIntensity(),IsigI)
-                        +'\nDetector Number:'+bank
-                        +'\nh,k,l:'+'%.3f %.3f %.3f'%(peak.getH(),peak.getK(),peak.getL())
-                        +'\nQ$_X$,Q$_Y$,Q$_Z$:'+'%.3f %.3f %.3f'%(self.x[i],self.y[i],self.z[i])
-                        +'\nQ($\AA^{{-1}}, 2\pi/d$):'+'%.3f'%(2*np.pi/peak.getDSpacing())
-                        +'\nd-Spacing($\AA$):'+'%.3f'%(peak.getDSpacing())
-                        +'\nWavelength($\AA$):'+'%.3f'%(peak.getWavelength())
-                        +'\n2$\\theta$($^\circ$):'+'%.3f'%(peak.getScattering())
-                        +'\nTime($\mu$s):'+'%.3f'%(peak.getTOF())
-                        +'\nE(meV):'+'%.3f'%(peak.getFinalEnergy()))
             figP = plt.figure("CrystalPlan"+str(self.events),figsize = (self.screen_x, self.screen_y))
             self.axP = figP.gca(projection = '3d')
             self.c[self.c<=1] = 1.
@@ -595,18 +531,50 @@ class MantidEV():
             figP.canvas.mpl_disconnect(cid)
 
     def onpick3(self, event):
-            ind = event.ind
-            zdirs = None
-            xp = np.take(self.x, ind)
-            yp = np.take(self.y, ind)
-            zp = np.take(self.z, ind)
-            label = np.take(self.text, ind)
-            global txt
-            try:
-                txt.remove()
-            except:
-                print ("First peak picked")
-            txt = self.axP.text(xp[0],yp[0],zp[0],label[0],zdirs, bbox = self.props)
+        ind = event.ind
+        zdirs = None
+        xp = np.take(self.x, ind)
+        yp = np.take(self.y, ind)
+        zp = np.take(self.z, ind)
+        cp = np.take(self.c, ind)
+        qSample=V3D(xp[0],yp[0],zp[0])
+        R=self._wksp.run().getGoniometer().getR()
+        qLab = R.dot(qSample)
+        peak = self.ws.createPeak(qLab)
+        peak.setQSampleFrame(qSample)
+        peak.setBinCount(cp[0])
+        self.ws.addPeak(peak)
+        try:
+            IndexPeaks( PeaksWorkspace = self.ws, Tolerance = 1.0, RoundHKLs = False )
+        except:
+            print ("UB matrix not found")
+        self.ws = IntegratePeaksMD( InputWorkspace = self._md, PeakRadius = self.peakRadius,
+                          CoordinatesToUse = "Q (sample frame)",
+                          BackgroundOuterRadius = self.bkg_outer_radius,
+                          BackgroundInnerRadius = self.bkg_inner_radius,
+                          PeaksWorkspace = self.ws, OutputWorkspace="events")
+        peak = self.ws.getPeak(0)
+        if peak.getSigmaIntensity() !=  0.0:
+            IsigI = peak.getIntensity()/peak.getSigmaIntensity()
+        else:
+            IsigI = 0.0
+        detID = int(peak.getDetectorID())
+        bank = self.instrument.getDetector(detID).getName()
+        label = 'Counts:'+'%.3f'%(peak.getBinCount())+ \
+             '\nIntegral, I/sigI:'+'%.3f %.3f'%(peak.getIntensity(),IsigI)+ \
+            '\nDetector Number:'+bank+ \
+            '\nh,k,l:'+'%.3f %.3f %.3f'%(peak.getH(),peak.getK(),peak.getL())+ \
+            '\nQ$_X$,Q$_Y$,Q$_Z$:'+'%.3f %.3f %.3f'%(xp[0],yp[0],zp[0])+ \
+            '\nQ($\AA^{{-1}}, 2\pi/d$):'+'%.3f'%(2*np.pi/peak.getDSpacing())+ \
+            '\nd-Spacing($\AA$):'+'%.3f'%(peak.getDSpacing())+ \
+            '\nWavelength($\AA$):'+'%.3f'%(peak.getWavelength())+ \
+            '\n2$\\theta$($^\circ$):'+'%.3f'%(peak.getScattering())+ \
+            '\nTime($\mu$s):'+'%.3f'%(peak.getTOF())+ \
+            '\nE(meV):'+'%.3f'%(peak.getFinalEnergy())
+        self.ws.removePeak(0)
+        txt = self.axP.text(xp[0],yp[0],zp[0],label,zdirs, bbox = self.props)
+        plt.pause(2)
+        txt.remove()
     
     def dim2array(self, d,center=True):
         """
@@ -782,6 +750,7 @@ if __name__ == '__main__':  # if we're running file directly and not importing i
         test.select_wksp()
         if test.events > 0:
             test.plot_Q()
+            test.find_peaks()
             test.plot_peaks(True)
             test.plot_peaks(False)
             test.plot_Qpeaks()
