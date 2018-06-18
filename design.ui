@@ -53,6 +53,11 @@
         <string>CORELLI</string>
        </property>
       </item>
+      <item>
+       <property name="text">
+        <string>ARCS</string>
+       </property>
+      </item>
      </widget>
     </item>
     <item>

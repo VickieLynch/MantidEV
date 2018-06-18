@@ -1,7 +1,7 @@
 import sys
 import time
 
-sys.path.append("/opt/mantidnightly/bin")
+sys.path.insert(0,"/opt/mantidnightly/bin")
 
 from mantid.simpleapi import *
 
